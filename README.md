@@ -1,1 +1,1 @@
-# dAnimePlus
+# dアニメPlus
