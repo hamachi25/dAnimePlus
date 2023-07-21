@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.0
+// @version     1.1
 // @author      chimaha
 // @description dアニメストアの動画を新規タブで開きます
 // @license     MIT
@@ -17,15 +17,66 @@ MIT dアニメストア便利化(https://greasyfork.org/ja/scripts/414008)
 
 "use strict";
 
+// 画質表示
+function qualityDisplay(workIds) {
+	console.log(workIds);
+	const jsonUrl = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
+	const xhr = new XMLHttpRequest();
+	xhr.open("GET", jsonUrl);
+	xhr.send();
+	xhr.onload = () => {
+		if (xhr.status == 200) {
+			const jsonObj = JSON.parse(xhr.responseText);
+
+			function sort(workids, response) {
+				const sorted = [];
+				for (const workid of workids) {
+					const item = response.find((res) => res["id"] == workid);
+					sorted.push(item["distribution"]["quality"]);
+				}
+				return sorted;
+			}
+			const sorted = sort(workIds, jsonObj);
+			console.log(sorted);
+
+			for (let i = 0; i < sorted.length; i++) {
+				const quality = sorted[i]
+				if (quality == "fhd") {
+					const fhd = "1080p";
+					div(fhd);
+				} else if (quality == "hd") {
+					const hd = "720p";
+					div(hd);
+				} else if (quality == "sd") {
+					const sd = "480p";
+					div(sd);
+				}
+				function div(quality) {
+					const headerquality = `
+							<div id="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+								<span style="text-decoration: none;">${quality}</span>
+							</div>
+							`;
+					document.querySelectorAll(".itemModuleIn > .thumbnailContainer > a")[i].insertAdjacentHTML('beforeend', headerquality);
+				}
+			}
+
+		}
+	};
+}
+
 const path = window.location.pathname.replace('/animestore/', '');
 if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// 気になる、視聴履歴
 	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
+	let workIds = [];
 	for (let i = 0; i < playerMypage.length; i++) {
 		playerMypage[i].removeAttribute("onclick");
 		const getHref = document.querySelectorAll(".textContainer")[i];
 		const urlGet = new URL(getHref.getAttribute("href"));
 		const partId = urlGet.searchParams.get('partId');
+		const workId = urlGet.searchParams.get("workId");
+		workIds.push(workId);
 		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + partId;
 		// サムネイルとテキストをクリックすると新規タブで開く
 		playerMypage[i].addEventListener('click', () => {
@@ -52,21 +103,26 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			playerImg.style.opacity = "";
 		});
 	}
+	qualityDisplay(workIds);
+
 } else if (path == "mp_viw_pc") {
 	// 続きから見る
 	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
+	let workIds = [];
 	for (let i = 0; i < playerMypage.length; i++) {
-		// htmlのonclick属性を削除
 		playerMypage[i].removeAttribute("onclick");
 		const getHref = document.querySelectorAll(".textContainer")[i];
 		const urlGet = new URL(getHref.getAttribute("href"));
 		const partId = urlGet.searchParams.get('partId');
+		const workId = urlGet.searchParams.get("workId");
+		workIds.push(workId);
+		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + partId;
 		// サムネイルとテキストをクリックすると新規タブで開く
 		playerMypage[i].addEventListener('click', () => {
-			open("https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + partId);
+			open(openUrl);
 		});
 		getHref.addEventListener('click', () => {
-			open("https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + partId);
+			open(openUrl);
 		});
 		getHref.style.cursor = "pointer";
 		getHref.removeAttribute("href");
@@ -87,7 +143,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		});
 
 		// header作成
-		const workId = urlGet.searchParams.get('workId');
 		const hrefLink = "https://animestore.docomo.ne.jp/animestore/ci_pc?workId=" + workId;
 		const title = document.querySelectorAll(".textContainer h2.line1 > span")[i].textContent;
 		const id1 = workId.slice(0, 2);
@@ -110,6 +165,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		</header>`;
 		document.querySelectorAll(".itemModule > section")[i].insertAdjacentHTML('afterbegin', header);
 	}
+	qualityDisplay(workIds);
 } else if (path == "tp_pc") {
 	// トップページ
 	// 「現在放送中のアニメ」リンク先変更
@@ -176,6 +232,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			headerLink.addEventListener('click', () => {
 				open(openUrl);
 			});
+
 		} else {
 			changeHref();
 		}
@@ -183,6 +240,64 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	const config = { childList: true, subtree: true };
 	observer.observe(document.body, config);
 	setTimeout(function () { observer.disconnect() }, 1000);
+
+	// 画質表示
+	setInterval(() => {
+		if (document.querySelectorAll("[data-workid] > .c-slide > #quality")[0]) { return }
+		const playerSlider = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]");
+		let workIds = [];
+		for (let i = 0; i < playerSlider.length; i++) {
+			const getHref = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]")[i];
+			const workId = getHref.getAttribute("data-workid");
+			workIds.push(workId);
+		}
+		console.log(workIds);
+		const jsonUrl = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
+		console.log(jsonUrl);
+		const xhr = new XMLHttpRequest();
+		xhr.open("GET", jsonUrl);
+		xhr.send();
+		xhr.onload = () => {
+			if (xhr.status == 200) {
+				const jsonObj = JSON.parse(xhr.responseText);
+
+				function sort(workids, response) {
+					const sorted = [];
+					for (const workid of workids) {
+						const item = response.find((res) => res["id"] == workid);
+						sorted.push(item["distribution"]["quality"]);
+					}
+					return sorted;
+				}
+				const sorted = sort(workIds, jsonObj);
+				console.log(sorted);
+
+				for (let i = 0; i < sorted.length; i++) {
+					const quality = sorted[i]
+					if (quality == "fhd") {
+						const fhd = "1080p";
+						div(fhd);
+					} else if (quality == "hd") {
+						const hd = "720p"
+						div(hd);
+					} else if (quality == "sd") {
+						const sd = "480p"
+						div(sd);
+					}
+					function div(quality) {
+						const headerquality = `
+							<div id="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+								<span style="text-decoration: none;">${quality}</span>
+							</div>
+							`
+						document.querySelectorAll(".p-slider__item:not(.isBlack) > a.c-slide > .isAnime:not(.isOnAir)")[i].insertAdjacentHTML('afterend', headerquality);
+					}
+				}
+
+			}
+		};
+	}, 1000);
+
 } else if (path == "ci_pc") {
 	// 作品ページ
 	const playerImg = document.querySelectorAll("section.clearfix > a");
@@ -215,6 +330,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// });
 	// const config = { childList: true, subtree: true };
 	// observer.observe(document.body, config);
+
 } else if (path == "sc_d_pc") {
 	// 再生ウィンドウ名をアニメ名に変更
 	const target = document.querySelector(".backInfoTxt1");
@@ -245,8 +361,8 @@ if (document.querySelector("ul.common-p-header__menu")) {
 	const myPage = document.querySelector('ul.common-p-header__menu > li:first-child > a[href$="mp_viw"]');
 	myPage.removeAttribute("href");
 	myPage.addEventListener('click', () => {
-	location.href = "https://animestore.docomo.ne.jp/animestore/mpa_fav_pc";
-});
+		location.href = "https://animestore.docomo.ne.jp/animestore/mpa_fav_pc";
+	});
 }
 
 // 詳しく見るを削除
