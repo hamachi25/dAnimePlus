@@ -1,5 +1,5 @@
 # dアニメストアPlus
-[Greasy Forkからダウンロード](https://greasyfork.org/ja/scripts/471401)  
+[Greasy Forkからダウンロード](https://greasyfork.org/ja/scripts/471042)  
 dアニメストアで使用できるUserScriptです。  
 
 # 主な機能
