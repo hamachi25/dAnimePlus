@@ -5,14 +5,18 @@
 // @grant       none
 // @version     1.1
 // @author      chimaha
-// @description dアニメストアの動画を新規タブで開きます
+// @description dアニメストアに様々な機能を追加します
 // @license     MIT
 // @supportURL  https://github.com/chimaha/dAnimePlus/issues
 // ==/UserScript==
 
-/*
-家守カホウ様のコードを一部使用しています
-MIT dアニメストア便利化(https://greasyfork.org/ja/scripts/414008)
+/*! dアニメストアPlus | MIT license | https://github.com/chimaha/dAnimePlus/blob/main/LICENSE */
+
+/*!
+*dアニメストア便利化 (https://greasyfork.org/ja/scripts/414008)
+*Copyright (c) 2020 家守カホウ
+*Released under the MIT license.
+*see https://opensource.org/licenses/MIT
 */
 
 "use strict";
@@ -239,7 +243,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	});
 	const config = { childList: true, subtree: true };
 	observer.observe(document.body, config);
-	setTimeout(function () { observer.disconnect() }, 1000);
+	setTimeout(function () { observer.disconnect(); }, 1000);
 
 	// 画質表示
 	setInterval(() => {
