@@ -1,6 +1,6 @@
 # dアニメストアPlus
 [Greasy Forkからダウンロード](https://greasyfork.org/ja/scripts/471042)  
-dアニメストアで使用できるUserScriptです。  
+dアニメストアに様々な機能を追加するUserScriptです。  
 
 # 主な機能
 ・動画をウィンドウではなく新規タブで開く  
