@@ -1,6 +1,6 @@
 # dアニメストアPlus
+[Greasy Forkからダウンロード](https://greasyfork.org/ja/scripts/471401)  
 dアニメストアで使用できるUserScriptです。  
-[ダウンロード](https://greasyfork.org/scripts/471042-d%E3%82%A2%E3%83%8B%E3%83%A1%E3%82%B9%E3%83%88%E3%82%A2plus/code/d%E3%82%A2%E3%83%8B%E3%83%A1%E3%82%B9%E3%83%88%E3%82%A2Plus.user.js)  
 
 # 主な機能
 ・動画をウィンドウではなく新規タブで開く  
@@ -13,11 +13,11 @@ dアニメストアで使用できるUserScriptです。
 
 # スクリーンショット
 ### サムネイルに解像度を表示  
-![解像度を表示](1.jpg)  
+![解像度を表示](https://github.com/chimaha/dAnimePlus/assets/107383950/d845118d-3abc-4825-af31-37d6958cebc4)  
 ### サムネイルとタイトル、どちらをクリックしても動画再生可能
-![タイトルをクリックして動画再生](2.jpg)  
+![タイトルをクリックして動画再生](https://github.com/chimaha/dAnimePlus/assets/107383950/9a3df48e-ae4d-4c48-82fd-24b0c1c19c33)  
 ### トップページの「視聴中の作品」のタイトルをすべて表示
-![視聴中の作品の表示を調整](3.jpg)  
+![視聴中の作品の表示を調整](https://github.com/chimaha/dAnimePlus/assets/107383950/b2a72ec6-df2c-4668-83f3-b2ecbb5b95af)  
 
 # クレジット
 このUserScriptは家守カホウ様の[dアニメストア便利化](https://greasyfork.org/ja/scripts/414008)のコードを一部使用しています
