@@ -1,7 +1,7 @@
 # dアニメストアPlus
-[Greasy Forkからダウンロード](https://greasyfork.org/ja/scripts/471042)  
+[UserScriptをダウンロード](https://github.com/chimaha/dAnimePlus/raw/main/script/danimeplus.user.js)  
 dアニメストアに様々な機能を追加するUserScriptです。  
-FirefoxとChromeで動作確認済みです。
+Firefox・ChromeとViolentmonkeyの組み合わせで動作確認済みです。  
 
 # 主な機能
 ・動画をウィンドウではなく新規タブで開く  
