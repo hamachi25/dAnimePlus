@@ -3,10 +3,11 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.2
+// @version     1.3
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
+// @icon        https://animestore.docomo.ne.jp/favicon.ico
 // @compatible  firefox
 // @compatible  chrome
 // @downloadURL https://github.com/chimaha/dAnimePlus/raw/main/script/danimeplus.user.js
@@ -25,7 +26,7 @@
 
 "use strict";
 
-// 画質表示
+// 解像度表示
 function qualityDisplay(workIds) {
 	console.log(workIds);
 	const jsonUrl = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
@@ -249,7 +250,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	observer.observe(document.body, config);
 	setTimeout(function () { observer.disconnect(); }, 1000);
 
-	// 画質表示
+	// 解像度表示
 	setInterval(() => {
 		if (document.querySelectorAll("[data-workid] > .c-slide > #quality")[0]) { return }
 		const playerSlider = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]");
@@ -370,6 +371,30 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		volume = Math.max(0, Math.min(volume, 1));
 		video.volume = volume;
 	});
+
+} else if (path == "sch_pc") {
+	// 検索結果
+	setInterval(() => {
+		// 解像度表示 はじめの読み込みのみ
+		if (document.querySelectorAll(".thumbnailContainer > a > #quality")[0]) { return }
+		const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
+		let workIds = [];
+		for (let i = 0; i < playerMypage.length; i++) {
+			const getHref = document.querySelectorAll(".textContainer")[i];
+			const urlGet = new URL(getHref.getAttribute("href"));
+			const workId = urlGet.searchParams.get("workId");
+			workIds.push(workId);
+		}
+		qualityDisplay(workIds);
+		
+		// 順番選択を常に表示
+		document.querySelector(".minict_wrapper > span").style.display = "none";
+		document.querySelector(".minict_wrapper > ul").style.cssText = "display: flex; border: none; border-top: none; box-shadow: none; width: max-content; background: none; top: -20px; right: -10px;"
+		const searchli = document.querySelectorAll(".minict_wrapper > ul > li");
+		for (let i = 0; i < searchli.length; i++) {
+			searchli[i].style.cssText = "padding: 20px 30px; border-bottom: none;"
+		}
+	}, 500);
 }
 
 // マイページのリンク先を気になるに変更
