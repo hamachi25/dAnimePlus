@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.1.3
+// @version     1.2
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -340,13 +340,21 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// observer.observe(document.body, config);
 
 } else if (path == "sc_d_pc") {
-	// 再生ウィンドウ名をアニメ名に変更
-	const target = document.querySelector(".backInfoTxt1");
+	const observerTarget = document.querySelector(".backInfoTxt1");
 	const observer = new MutationObserver(records => {
-		document.title = document.querySelector(".backInfoTxt1").textContent;
+		// 再生ウィンドウ名をアニメ名に変更
+		const animeTitle = observerTarget.textContent
+		document.title = animeTitle;
+		// シークバーにタイトルと話数を表示
+		const episode = document.querySelector(".backInfoTxt2").textContent;
+		const div = `
+		<div class="title" style="display: table; margin-left: 10px;">
+			<span style="display: table-cell; color: #a0a09f; font-weight: 700; vertical-align: middle;">${animeTitle} ${episode}</span>
+		</div>`
+		document.querySelector(".buttonArea > .volume").insertAdjacentHTML("afterend", div);
 	});
 	const config = { childList: true };
-	observer.observe(target, config);
+	observer.observe(observerTarget, config);
 	observer.disconnect;
 
 	// マウスホイールで音量変更
