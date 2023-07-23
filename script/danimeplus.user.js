@@ -3,14 +3,14 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.1.2
+// @version     1.1.3
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
 // @compatible  firefox
 // @compatible  chrome
-// @downloadURL https://raw.githubusercontent.com/chimaha/dAnimePlus/main/script/danimeplus.js
-// @updateURL   https://raw.githubusercontent.com/chimaha/dAnimePlus/main/script/danimeplus.js
+// @downloadURL https://github.com/chimaha/dAnimePlus/raw/main/script/danimeplus.user.js
+// @updateURL   https://github.com/chimaha/dAnimePlus/raw/main/script/danimeplus.user.js
 // @supportURL  https://github.com/chimaha/dAnimePlus/issues
 // ==/UserScript==
 
