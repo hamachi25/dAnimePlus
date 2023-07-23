@@ -6,7 +6,11 @@
 // @version     1.1.1
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
-// @license     MIT
+// @license     MIT license
+// @compatible  firefox
+// @compatible  chrome
+// @downloadURL https://raw.githubusercontent.com/chimaha/dAnimePlus/main/script/danimeplus.js
+// @updateURL   https://raw.githubusercontent.com/chimaha/dAnimePlus/main/script/danimeplus.js
 // @supportURL  https://github.com/chimaha/dAnimePlus/issues
 // ==/UserScript==
 
