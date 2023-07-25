@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.3
+// @version     1.3.1
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -251,7 +251,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	setTimeout(function () { observer.disconnect(); }, 1000);
 
 	// 解像度表示
-	setInterval(() => {
+	const topInterval = setInterval(() => {
 		if (document.querySelectorAll("[data-workid] > .c-slide > #quality")[0]) { return }
 		const playerSlider = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]");
 		let workIds = [];
@@ -305,6 +305,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 			}
 		};
+		clearInterval(topInterval);
 	}, 1000);
 
 } else if (path == "ci_pc") {
@@ -348,11 +349,12 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		document.title = animeTitle;
 		// シークバーにタイトルと話数を表示
 		const episode = document.querySelector(".backInfoTxt2").textContent;
-		const div = `
-		<div class="title" style="display: table; margin-left: 10px;">
-			<span style="display: table-cell; color: #a0a09f; font-weight: 700; vertical-align: middle;">${animeTitle} ${episode}</span>
-		</div>`
-		document.querySelector(".buttonArea > .volume").insertAdjacentHTML("afterend", div);
+		if (document.querySelector(".buttonArea > .title") == undefined) {
+			const div = '<div class="title" style="display: table; margin-left: 10px;"></div>';
+			document.querySelector(".buttonArea > .volume").insertAdjacentHTML("afterend", div);
+		}
+		const span = `<span style="display: table-cell; color: #a0a09f; font-weight: 700; vertical-align: middle;">${animeTitle} ${episode}</span>`
+		document.querySelector(".buttonArea > .title").innerHTML = span;
 	});
 	const config = { childList: true };
 	observer.observe(observerTarget, config);
@@ -374,7 +376,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 } else if (path == "sch_pc") {
 	// 検索結果
-	setInterval(() => {
+	const searchInterval = setInterval(() => {
 		// 解像度表示 はじめの読み込みのみ
 		if (document.querySelectorAll(".thumbnailContainer > a > #quality")[0]) { return }
 		const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
@@ -386,7 +388,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			workIds.push(workId);
 		}
 		qualityDisplay(workIds);
-		
+
 		// 順番選択を常に表示
 		document.querySelector(".minict_wrapper > span").style.display = "none";
 		document.querySelector(".minict_wrapper > ul").style.cssText = "display: flex; border: none; border-top: none; box-shadow: none; width: max-content; background: none; top: -20px; right: -10px;"
@@ -394,6 +396,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		for (let i = 0; i < searchli.length; i++) {
 			searchli[i].style.cssText = "padding: 20px 30px; border-bottom: none;"
 		}
+		clearInterval(searchInterval);
 	}, 500);
 }
 
