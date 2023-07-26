@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.3.1
+// @version     1.3.2
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -30,6 +30,7 @@
 function qualityDisplay(workIds) {
 	console.log(workIds);
 	const jsonUrl = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
+	console.log(jsonUrl);
 	const xhr = new XMLHttpRequest();
 	xhr.open("GET", jsonUrl);
 	xhr.send();
@@ -252,7 +253,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 	// 解像度表示
 	const topInterval = setInterval(() => {
-		if (document.querySelectorAll("[data-workid] > .c-slide > #quality")[0]) { return }
 		const playerSlider = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]");
 		let workIds = [];
 		for (let i = 0; i < playerSlider.length; i++) {
@@ -378,7 +378,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// 検索結果
 	const searchInterval = setInterval(() => {
 		// 解像度表示 はじめの読み込みのみ
-		if (document.querySelectorAll(".thumbnailContainer > a > #quality")[0]) { return }
 		const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
 		let workIds = [];
 		for (let i = 0; i < playerMypage.length; i++) {
@@ -388,16 +387,23 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			workIds.push(workId);
 		}
 		qualityDisplay(workIds);
+		clearInterval(searchInterval);
+	}, 500);
 
-		// 順番選択を常に表示
+	// 表示順選択肢を常に表示
+	const observerTarget = document.querySelector(".listHeader > p.headerText");
+	console.log(observerTarget);
+	const observer = new MutationObserver(records => {
 		document.querySelector(".minict_wrapper > span").style.display = "none";
 		document.querySelector(".minict_wrapper > ul").style.cssText = "display: flex; border: none; border-top: none; box-shadow: none; width: max-content; background: none; top: -20px; right: -10px;"
 		const searchli = document.querySelectorAll(".minict_wrapper > ul > li");
 		for (let i = 0; i < searchli.length; i++) {
 			searchli[i].style.cssText = "padding: 20px 30px; border-bottom: none;"
 		}
-		clearInterval(searchInterval);
-	}, 500);
+	});
+	const config = { childList: true };
+	observer.observe(observerTarget, config);
+
 }
 
 // マイページのリンク先を気になるに変更
