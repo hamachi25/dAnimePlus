@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.4
+// @version     1.4.1
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -166,73 +166,66 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 } else if (path == "tp_pc") {
 	// トップページ
 	// 「現在放送中のアニメ」リンク先変更
-	const observer = new MutationObserver(records => {
-		if (document.querySelector(".pageHeader.top").style.display != "none") {
-
-			// リンク先変更
-			const itemList = document.querySelectorAll(".itemWrapper > .p-slider__item > a.c-slide");
-			for (let i = 0; i < itemList.length; i++) {
-				const params = new URL(itemList[i].getAttribute("href")).searchParams;
-				const workId = params.get("workId");
-				const url = "https://animestore.docomo.ne.jp/animestore/ci_pc?workId=" + workId;
-				itemList[i].setAttribute("href", `${url}`);
-			}
-
-			// 新規ウィンドウで開くeventを無効化
-			if (document.querySelector(".thumbnailContainer > a > .imgWrap16x9") == undefined) { return }
-			const playerImg = document.querySelectorAll(".thumbnailContainer > a > .imgWrap16x9")[0];
-			playerImg.onclick = (event) => {
-				event.stopPropagation();
-			};
-			// アイコンのeventが削除できないので、imgWrap16x9の子に移動する
-			if (document.querySelector(".thumbnailContainer > a > i") == undefined) { return }
-			const iconPlay = document.querySelector(".thumbnailContainer > a > i");
-			playerImg.appendChild(iconPlay);
-
-			// サムネイルをクリックすると新規タブで開く
-			const playerHome = document.querySelector(".thumbnailContainer > a");
-			const partId = playerHome.getAttribute("data-partid");
-			const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + partId;
-			playerImg.addEventListener('click', () => {
-				open(openUrl);
-			});
-
-			// 「続きから視聴する」を削除
-			document.querySelector(".btnResume").remove();
-			// タイトルの横幅を増やす
-			document.querySelector(".pageHeader .title").style.width = "944px";
-			// mouseover
-			const headerLink = document.querySelector(".pageHeaderIn > .information");
-			const playerToppage = document.querySelector(".thumbnailContainer > a");
-			const titleLine = document.querySelector(".information > .title");
-			const subtitleLine = document.querySelector(".information > .subTitle > p");
-			headerLink.style.cursor = "pointer";
-			headerLink.addEventListener('mouseover', () => {
-				titleLine.style.textDecoration = "underline";
-				subtitleLine.style.textDecoration = "underline";
-				playerImg.style.opacity = "0.6";
-			});
-			headerLink.addEventListener('mouseleave', () => {
-				titleLine.style.textDecoration = "";
-				subtitleLine.style.textDecoration = "";
-				playerImg.style.opacity = "";
-			});
-			playerToppage.addEventListener('mouseover', () => {
-				titleLine.style.textDecoration = "underline";
-				subtitleLine.style.textDecoration = "underline";
-			});
-			playerToppage.addEventListener('mouseleave', () => {
-				titleLine.style.textDecoration = "";
-				subtitleLine.style.textDecoration = "";
-			});
-			// タイトルをクリックすると新規タブで開く
-			headerLink.addEventListener('click', () => {
-				open(openUrl);
-			});
-
-		} else {
-			changeHref();
+	const observer = new MutationObserver(() => {
+		// リンク先変更
+		const itemList = document.querySelectorAll(".itemWrapper > .p-slider__item > a.c-slide");
+		for (let i = 0; i < itemList.length; i++) {
+			const params = new URL(itemList[i].getAttribute("href")).searchParams;
+			const workId = params.get("workId");
+			const url = "https://animestore.docomo.ne.jp/animestore/ci_pc?workId=" + workId;
+			itemList[i].setAttribute("href", `${url}`);
 		}
+
+		// 新規ウィンドウで開くeventを無効化
+		if (document.querySelector(".thumbnailContainer > a > .imgWrap16x9") == undefined) { return }
+		const playerImg = document.querySelectorAll(".thumbnailContainer > a > .imgWrap16x9")[0];
+		playerImg.onclick = (event) => {
+			event.stopPropagation();
+		};
+		// アイコンのeventが削除できないので、imgWrap16x9の子に移動する
+		const iconPlay = document.querySelector(".thumbnailContainer > a > i");
+		playerImg.appendChild(iconPlay);
+
+		// サムネイルをクリックすると新規タブで開く
+		const playerHome = document.querySelector(".thumbnailContainer > a");
+		const partId = playerHome.getAttribute("data-partid");
+		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + partId;
+		playerImg.addEventListener('click', () => {
+			open(openUrl);
+		});
+
+		// 「続きから視聴する」を削除
+		document.querySelector(".btnResume").remove();
+		// タイトルの横幅を増やす
+		document.querySelector(".pageHeader .title").style.width = "944px";
+		// mouseover
+		const headerLink = document.querySelector(".pageHeaderIn > .information");
+		const playerToppage = document.querySelector(".thumbnailContainer > a");
+		const titleLine = document.querySelector(".information > .title");
+		const subtitleLine = document.querySelector(".information > .subTitle > p");
+		headerLink.style.cursor = "pointer";
+		headerLink.addEventListener('mouseover', () => {
+			titleLine.style.textDecoration = "underline";
+			subtitleLine.style.textDecoration = "underline";
+			playerImg.style.opacity = "0.6";
+		});
+		headerLink.addEventListener('mouseleave', () => {
+			titleLine.style.textDecoration = "";
+			subtitleLine.style.textDecoration = "";
+			playerImg.style.opacity = "";
+		});
+		playerToppage.addEventListener('mouseover', () => {
+			titleLine.style.textDecoration = "underline";
+			subtitleLine.style.textDecoration = "underline";
+		});
+		playerToppage.addEventListener('mouseleave', () => {
+			titleLine.style.textDecoration = "";
+			subtitleLine.style.textDecoration = "";
+		});
+		// タイトルをクリックすると新規タブで開く
+		headerLink.addEventListener('click', () => {
+			open(openUrl);
+		});
 	});
 	const config = { childList: true, subtree: true };
 	observer.observe(document.body, config);
@@ -307,7 +300,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	}
 
 	// // 詳しく見る
-	// const observer = new MutationObserver(records => {
+	// const observer = new MutationObserver(() => {
 	// 	if (document.querySelector("modal") != undefined && document.querySelector("#openVideo") == undefined) {
 	// 		if (document.querySelector("#streamingQuality") == undefined) { return }
 	// 		document.querySelector("#streamingQuality").remove();
@@ -328,7 +321,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 } else if (path == "sc_d_pc") {
 	const observerTarget = document.querySelector(".backInfoTxt1");
-	const observer = new MutationObserver(records => {
+	const observer = new MutationObserver(() => {
 		// 再生ウィンドウ名をアニメ名に変更
 		const animeTitle = observerTarget.textContent
 		document.title = animeTitle;
@@ -361,19 +354,17 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 } else if (path == "sch_pc") {
 	// 検索結果
-	const observer2 = new MutationObserver(records => {
-		setTimeout(() => {
-			qualityDisplay();
-		}, 1000);
+	const observer2 = new MutationObserver(() => {
+		qualityDisplay();
 	});
-	const config2 = { childList: true };
+	const config = { childList: true };
 	console.log(document.querySelector("#listContainer"));
-	observer2.observe(document.querySelector("#listContainer"), config2);
+	observer2.observe(document.querySelector("#listContainer"), config);
 
 	// 表示順選択肢を常に表示
 	const observerTarget = document.querySelector(".listHeader > p.headerText");
 	console.log(observerTarget);
-	const observer = new MutationObserver(records => {
+	const observer = new MutationObserver(() => {
 		document.querySelector(".minict_wrapper > span").style.display = "none";
 		document.querySelector(".minict_wrapper > ul").style.cssText = "display: flex; border: none; border-top: none; box-shadow: none; width: max-content; background: none; top: -20px; right: -10px;"
 		const searchli = document.querySelectorAll(".minict_wrapper > ul > li");
@@ -381,15 +372,13 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			searchli[i].style.cssText = "padding: 20px 30px; border-bottom: none;"
 		}
 	});
-	const config = { childList: true };
 	observer.observe(observerTarget, config);
 
 } else if (path == "gen_pc" || path == "c_all_pc") {
+	// 検索結果(50音順・ジャンル)
 	// 解像度表示
-	const observer2 = new MutationObserver(records => {
-		setTimeout(() => {
-			qualityDisplay();
-		}, 1000);
+	const observer2 = new MutationObserver(() => {
+		qualityDisplay();
 	});
 	const config2 = { childList: true };
 	console.log(document.querySelector("#listContainer"));
