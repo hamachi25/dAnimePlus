@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.4.1
+// @version     1.5
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -280,7 +280,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 						document.querySelectorAll(".p-slider__item:not(.isBlack) > a.c-slide > .isAnime:not(.isOnAir)")[i].insertAdjacentHTML('afterend', headerquality);
 					}
 				}
-
 			}
 		};
 		clearInterval(topInterval);
@@ -383,6 +382,67 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	const config2 = { childList: true };
 	console.log(document.querySelector("#listContainer"));
 	observer2.observe(document.querySelector("#listContainer"), config2);
+} else if (path == "mpa_cmp_pc") {
+	// コンプリート
+	// 解像度表示
+	qualityDisplay();
+} else if (path == "CF/mylist_detail" || path == "mpa_shr_pc") {
+	// リスト
+	// 解像度表示
+	const observer = new MutationObserver(() => {
+		if (document.querySelectorAll(".p-mylistItemList__item > a > #quality")[0]) { return }
+		const playerMypage = document.querySelectorAll(".p-mylistItemList__item > a");
+		let workIds = [];
+		for (let i = 0; i < playerMypage.length; i++) {
+			const getHref = playerMypage[i];
+			const urlGet = new URL(getHref.getAttribute("href"));
+			const workId = urlGet.searchParams.get("workId");
+			workIds.push(workId);
+		}
+		console.log(workIds);
+		const jsonUrl = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
+		const xhr = new XMLHttpRequest();
+		xhr.open("GET", jsonUrl);
+		xhr.send();
+		xhr.onload = () => {
+			if (xhr.status == 200) {
+				const jsonObj = JSON.parse(xhr.responseText);
+
+				function sort(workids, response) {
+					const sorted = [];
+					for (const workid of workids) {
+						const item = response.find((res) => res["id"] == workid);
+						sorted.push(item["distribution"]["quality"]);
+					}
+					return sorted;
+				}
+				const sorted = sort(workIds, jsonObj);
+				console.log(sorted);
+
+				for (let i = 0; i < sorted.length; i++) {
+					const quality = sorted[i];
+					if (quality == "fhd") {
+						div("1080p");
+					} else if (quality == "hd") {
+						div("720p");
+					} else if (quality == "sd") {
+						div("480p");
+					}
+					function div(quality) {
+						const headerquality = `
+							<div id="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+								<span style="text-decoration: none;">${quality}</span>
+							</div>
+							`;
+						playerMypage[i].insertAdjacentHTML('beforeend', headerquality);
+					}
+				}
+			}
+		};
+	});
+	const config = { childList: true, subtree: true };
+	observer.observe(document.querySelector(".p-mylistItemList"), config);
+	setTimeout(function () { observer.disconnect(); }, 1000);
 }
 
 // マイページのリンク先を気になるに変更
