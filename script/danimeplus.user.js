@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.5
+// @version     1.5.1
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -448,10 +448,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 // マイページのリンク先を気になるに変更
 if (document.querySelector("ul.common-p-header__menu")) {
 	const myPage = document.querySelector('ul.common-p-header__menu > li:first-child > a[href$="mp_viw"]');
-	myPage.removeAttribute("href");
-	myPage.addEventListener('click', () => {
-		location.href = "https://animestore.docomo.ne.jp/animestore/mpa_fav_pc";
-	});
+	myPage.setAttribute("href", "https://animestore.docomo.ne.jp/animestore/mpa_fav_pc");
 }
 
 // 詳しく見るを削除
