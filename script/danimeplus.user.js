@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.5.1
+// @version     1.5.2
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -70,7 +70,7 @@ function qualityDisplay() {
 				}
 				function div(quality) {
 					const headerquality = `
-							<div id="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+							<div class="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
 								<span style="text-decoration: none;">${quality}</span>
 							</div>
 							`;
@@ -233,7 +233,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 	// 解像度表示
 	const topInterval = setInterval(() => {
-		if (document.querySelectorAll("[data-workid] > .c-slide > #quality")[0]) { return }
+		if (document.querySelectorAll("[data-workid] > .c-slide > .quality")[0]) { return }
 		const playerSlider = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]");
 		let workIds = [];
 		for (let i = 0; i < playerSlider.length; i++) {
@@ -273,7 +273,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 					}
 					function div(quality) {
 						const headerquality = `
-							<div id="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+							<div class="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
 								<span style="text-decoration: none;">${quality}</span>
 							</div>
 							`
@@ -390,7 +390,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// リスト
 	// 解像度表示
 	const observer = new MutationObserver(() => {
-		if (document.querySelectorAll(".p-mylistItemList__item > a > #quality")[0]) { return }
+		if (document.querySelectorAll(".p-mylistItemList__item > a > .quality")[0]) { return }
 		const playerMypage = document.querySelectorAll(".p-mylistItemList__item > a");
 		let workIds = [];
 		for (let i = 0; i < playerMypage.length; i++) {
@@ -430,7 +430,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 					}
 					function div(quality) {
 						const headerquality = `
-							<div id="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+							<div class="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
 								<span style="text-decoration: none;">${quality}</span>
 							</div>
 							`;
