@@ -134,7 +134,7 @@ function qualityAndYear() {
 							<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
 						</div>
 						<div style="position: absolute;top: 3px;right: 3px;border-radius: 4px;padding: 0.5px 4px;background-color: rgba(255,255,255,0.8);text-decoration: none;">
-							<span style="text-decoration: none;font-weight: bold;font-size: 11px;">${year}</span>
+							<span style="text-decoration: none;font-weight: bold;font-size: 11px;">${year}年</span>
 						</div>`;
 					document.querySelectorAll(".itemModuleIn > .thumbnailContainer > a")[i + qualityCount].insertAdjacentHTML('beforeend', headerquality);
 				}
