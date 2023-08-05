@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.6
+// @version     1.6.1
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
