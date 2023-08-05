@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.5.2
+// @version     1.6
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -53,6 +53,7 @@ function qualityDisplay() {
 					const item = response.find((res) => res["id"] == workid);
 					sorted.push(item["distribution"]["quality"]);
 				}
+				console.log(sorted);
 				return sorted;
 			}
 			const sorted = sort(workIds, jsonObj);
@@ -70,10 +71,9 @@ function qualityDisplay() {
 				}
 				function div(quality) {
 					const headerquality = `
-							<div class="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
-								<span style="text-decoration: none;">${quality}</span>
-							</div>
-							`;
+							<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+								<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+							</div>`;
 					document.querySelectorAll(".itemModuleIn > .thumbnailContainer > a")[i + qualityCount].insertAdjacentHTML('beforeend', headerquality);
 				}
 			}
@@ -81,9 +81,72 @@ function qualityDisplay() {
 		}
 	};
 }
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------
 
-// サムネイルとテキストをクリックすると新規タブで開く + mouseover ----------------------
+// 解像度表示 + 制作年度表示------------------------------------------------------------------
+function qualityAndYear() {
+	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
+	let workIds = [];
+	for (let i = 0; i < playerMypage.length; i++) {
+		const getHref = document.querySelectorAll(".textContainer")[i];
+		const urlGet = new URL(getHref.getAttribute("href"));
+		const workId = urlGet.searchParams.get("workId");
+		workIds.push(workId);
+	}
+	workIds = workIds.slice(qualityCount);
+	console.log(workIds);
+	const jsonUrl = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
+	const xhr = new XMLHttpRequest();
+	xhr.open("GET", jsonUrl);
+	xhr.send();
+	xhr.onload = () => {
+		if (xhr.status == 200) {
+			const jsonObj = JSON.parse(xhr.responseText);
+
+			function sort(workids, response) {
+				const sorted = [];
+				const yearSorted = [];
+				for (const workid of workids) {
+					const item = response.find((res) => res["id"] == workid);
+					sorted.push(item["distribution"]["quality"]);
+					yearSorted.push(item["details"]["production_year"]);
+				}
+				return [sorted, yearSorted];
+			}
+			const [sorted, yearSorted] = sort(workIds, jsonObj);
+			console.log(sorted);
+			console.log(yearSorted);
+			console.log(qualityCount);
+
+			for (let i = 0; i < sorted.length; i++) {
+				const quality = sorted[i];
+				const year = yearSorted[i];
+				if (quality == "fhd") {
+					div("1080p");
+				} else if (quality == "hd") {
+					div("720p");
+				} else if (quality == "sd") {
+					div("480p");
+				}
+				function div(quality) {
+					const headerquality = `
+						<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+							<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+						</div>
+						<div style="position: absolute;top: 3px;right: 3px;border-radius: 4px;padding: 0.5px 4px;background-color: rgba(255,255,255,0.8);text-decoration: none;">
+							<span style="text-decoration: none;font-weight: bold;font-size: 11px;">${year}</span>
+						</div>`;
+					document.querySelectorAll(".itemModuleIn > .thumbnailContainer > a")[i + qualityCount].insertAdjacentHTML('beforeend', headerquality);
+				}
+			}
+			qualityCount = qualityCount + sorted.length;
+		}
+	}
+}
+
+// -----------------------------------------------------------------------------------------
+
+// サムネイルとテキストをクリックすると新規タブで開く + mouseover -------------------------------
 function thumbnailclick() {
 	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
 	for (let i = 0; i < playerMypage.length; i++) {
@@ -118,7 +181,7 @@ function thumbnailclick() {
 		});
 	}
 }
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------
 
 
 
@@ -273,10 +336,9 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 					}
 					function div(quality) {
 						const headerquality = `
-							<div class="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
-								<span style="text-decoration: none;">${quality}</span>
-							</div>
-							`
+							<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+								<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+							</div>`;
 						document.querySelectorAll(".p-slider__item:not(.isBlack) > a.c-slide > .isAnime:not(.isOnAir)")[i].insertAdjacentHTML('afterend', headerquality);
 					}
 				}
@@ -353,16 +415,8 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 } else if (path == "sch_pc") {
 	// 検索結果
-	const observer2 = new MutationObserver(() => {
-		qualityDisplay();
-	});
-	const config = { childList: true };
-	console.log(document.querySelector("#listContainer"));
-	observer2.observe(document.querySelector("#listContainer"), config);
-
 	// 表示順選択肢を常に表示
 	const observerTarget = document.querySelector(".listHeader > p.headerText");
-	console.log(observerTarget);
 	const observer = new MutationObserver(() => {
 		document.querySelector(".minict_wrapper > span").style.display = "none";
 		document.querySelector(".minict_wrapper > ul").style.cssText = "display: flex; border: none; border-top: none; box-shadow: none; width: max-content; background: none; top: -20px; right: -10px;"
@@ -370,22 +424,46 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		for (let i = 0; i < searchli.length; i++) {
 			searchli[i].style.cssText = "padding: 20px 30px; border-bottom: none;"
 		}
+		qualityCount = 0;
 	});
+	const config = { childList: true };
 	observer.observe(observerTarget, config);
+
+	const observer2 = new MutationObserver(() => {
+		qualityAndYear();
+	});
+	observer2.observe(document.querySelector("#listContainer"), config);
 
 } else if (path == "gen_pc" || path == "c_all_pc") {
 	// 検索結果(50音順・ジャンル)
 	// 解像度表示
+	const observerTarget = document.querySelector(".listHeader > p.headerText");
+	const observer = new MutationObserver(() => {
+		setTimeout(() => {
+			document.querySelector(".minict_wrapper > span").style.display = "none";
+			document.querySelector(".minict_wrapper > ul").style.cssText = "display: flex; border: none; border-top: none; box-shadow: none; width: max-content; background: none; top: -20px; right: -10px;"
+			const searchli = document.querySelectorAll(".minict_wrapper > ul > li");
+			for (let i = 0; i < searchli.length; i++) {
+				searchli[i].style.cssText = "padding: 20px 30px; border-bottom: none;"
+			}
+		}, 100);
+		qualityCount = 0;
+	});
+	const config = { childList: true };
+	observer.observe(observerTarget, config);
+
 	const observer2 = new MutationObserver(() => {
-		qualityDisplay();
+		qualityAndYear();
 	});
 	const config2 = { childList: true };
 	console.log(document.querySelector("#listContainer"));
 	observer2.observe(document.querySelector("#listContainer"), config2);
-} else if (path == "mpa_cmp_pc") {
-	// コンプリート
+} else if (path == "mpa_cmp_pc" || path == "series_pc") {
+	// コンプリート、シリーズ
 	// 解像度表示
-	qualityDisplay();
+	window.addEventListener("load", () => {
+		qualityDisplay();
+	});
 } else if (path == "CF/mylist_detail" || path == "mpa_shr_pc") {
 	// リスト
 	// 解像度表示
@@ -430,10 +508,9 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 					}
 					function div(quality) {
 						const headerquality = `
-							<div class="quality" style="position: absolute; top: 3px; left: 3px; border: 0px; border-radius: 4px; padding: 2px 4px 0px 4px; font-size: 11px; font-weight: bold; background-color: rgba(255,255,255,0.8); text-decoration: none;">
-								<span style="text-decoration: none;">${quality}</span>
-							</div>
-							`;
+							<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+								<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+							</div>`;
 						playerMypage[i].insertAdjacentHTML('beforeend', headerquality);
 					}
 				}
