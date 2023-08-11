@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.6.1
+// @version     1.6.2
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -295,8 +295,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	setTimeout(function () { observer.disconnect(); }, 1000);
 
 	// 解像度表示
-	const topInterval = setInterval(() => {
-		if (document.querySelectorAll("[data-workid] > .c-slide > .quality")[0]) { return }
+	setTimeout(() => {
 		const playerSlider = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]");
 		let workIds = [];
 		for (let i = 0; i < playerSlider.length; i++) {
@@ -344,8 +343,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 				}
 			}
 		};
-		clearInterval(topInterval);
-	}, 1000);
+	}, 500);
 
 } else if (path == "ci_pc") {
 	// 作品ページ
@@ -429,14 +427,15 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	const config = { childList: true };
 	observer.observe(observerTarget, config);
 
+	// 解像度表示
 	const observer2 = new MutationObserver(() => {
 		qualityAndYear();
 	});
 	observer2.observe(document.querySelector("#listContainer"), config);
 
-} else if (path == "gen_pc" || path == "c_all_pc") {
-	// 検索結果(50音順・ジャンル)
-	// 解像度表示
+} else if (path == "gen_pc" || path == "c_all_pc" || path == "series_pc") {
+	// 検索結果(50音順・ジャンル)、シリーズ
+	// 表示順選択肢を常に表示
 	const observerTarget = document.querySelector(".listHeader > p.headerText");
 	const observer = new MutationObserver(() => {
 		setTimeout(() => {
@@ -446,12 +445,13 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			for (let i = 0; i < searchli.length; i++) {
 				searchli[i].style.cssText = "padding: 20px 30px; border-bottom: none;"
 			}
-		}, 100);
+		}, 300);
 		qualityCount = 0;
 	});
 	const config = { childList: true };
 	observer.observe(observerTarget, config);
 
+	// 解像度表示
 	const observer2 = new MutationObserver(() => {
 		qualityAndYear();
 	});
@@ -459,16 +459,15 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	console.log(document.querySelector("#listContainer"));
 	observer2.observe(document.querySelector("#listContainer"), config2);
 } else if (path == "mpa_cmp_pc" || path == "series_pc") {
-	// コンプリート、シリーズ
+	// コンプリート
 	// 解像度表示
-	window.addEventListener("load", () => {
-		qualityDisplay();
-	});
+	qualityDisplay();
+
 } else if (path == "CF/mylist_detail" || path == "mpa_shr_pc") {
 	// リスト
 	// 解像度表示
 	const observer = new MutationObserver(() => {
-		if (document.querySelectorAll(".p-mylistItemList__item > a > .quality")[0]) { return }
+		if (document.querySelectorAll(".p-mylistItemList__item > a > .quality")[0]) { return; }
 		const playerMypage = document.querySelectorAll(".p-mylistItemList__item > a");
 		let workIds = [];
 		for (let i = 0; i < playerMypage.length; i++) {
