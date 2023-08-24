@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.6.2
+// @version     1.6.3
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -26,125 +26,71 @@
 
 "use strict";
 
-// 解像度表示 ------------------------------------------------------------------
-let qualityCount = 0;
-function qualityDisplay() {
-	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
-	let workIds = [];
-	for (let i = 0; i < playerMypage.length; i++) {
-		const getHref = document.querySelectorAll(".textContainer")[i];
-		const urlGet = new URL(getHref.getAttribute("href"));
-		const workId = urlGet.searchParams.get("workId");
-		workIds.push(workId);
-	}
-	workIds = workIds.slice(qualityCount);
-	console.log(workIds);
-	const jsonUrl = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
-	const xhr = new XMLHttpRequest();
-	xhr.open("GET", jsonUrl);
-	xhr.send();
-	xhr.onload = () => {
-		if (xhr.status == 200) {
-			const jsonObj = JSON.parse(xhr.responseText);
-
-			function sort(workids, response) {
-				const sorted = [];
-				for (const workid of workids) {
-					const item = response.find((res) => res["id"] == workid);
-					sorted.push(item["distribution"]["quality"]);
-				}
-				console.log(sorted);
-				return sorted;
-			}
-			const sorted = sort(workIds, jsonObj);
-			console.log(sorted);
-			console.log(qualityCount);
-
-			for (let i = 0; i < sorted.length; i++) {
-				const quality = sorted[i];
-				if (quality == "fhd") {
-					div("1080p");
-				} else if (quality == "hd") {
-					div("720p");
-				} else if (quality == "sd") {
-					div("480p");
-				}
-				function div(quality) {
-					const headerquality = `
-							<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
-								<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
-							</div>`;
-					document.querySelectorAll(".itemModuleIn > .thumbnailContainer > a")[i + qualityCount].insertAdjacentHTML('beforeend', headerquality);
-				}
-			}
-			qualityCount = qualityCount + sorted.length;
-		}
-	};
-}
-// -----------------------------------------------------------------------------------------
-
 // 解像度表示 + 制作年度表示------------------------------------------------------------------
-function qualityAndYear() {
+let qualityCount = 0;
+function qualityAndYear(torf) {
 	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
 	let workIds = [];
 	for (let i = 0; i < playerMypage.length; i++) {
-		const getHref = document.querySelectorAll(".textContainer")[i];
-		const urlGet = new URL(getHref.getAttribute("href"));
-		const workId = urlGet.searchParams.get("workId");
+		const workId = new URL(document.querySelectorAll(".textContainer")[i]).searchParams.get("workId");
 		workIds.push(workId);
 	}
 	workIds = workIds.slice(qualityCount);
 	console.log(workIds);
-	const jsonUrl = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
-	const xhr = new XMLHttpRequest();
-	xhr.open("GET", jsonUrl);
-	xhr.send();
-	xhr.onload = () => {
-		if (xhr.status == 200) {
-			const jsonObj = JSON.parse(xhr.responseText);
-
-			function sort(workids, response) {
-				const sorted = [];
-				const yearSorted = [];
-				for (const workid of workids) {
-					const item = response.find((res) => res["id"] == workid);
-					sorted.push(item["distribution"]["quality"]);
-					yearSorted.push(item["details"]["production_year"]);
-				}
-				return [sorted, yearSorted];
+	const fetchAsync = async () => {
+		const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
+		const urlResponse = await fetch(url);
+		const jsonResponse = await urlResponse.json();
+		function sort(workids, response) {
+			const sorted = [];
+			const yearSorted = [];
+			for (const workid of workids) {
+				const item = response.find((res) => res["id"] == workid);
+				sorted.push(item["distribution"]["quality"]);
+				yearSorted.push(item["details"]["production_year"]);
 			}
-			const [sorted, yearSorted] = sort(workIds, jsonObj);
-			console.log(sorted);
-			console.log(yearSorted);
-			console.log(qualityCount);
-
-			for (let i = 0; i < sorted.length; i++) {
-				const quality = sorted[i];
-				const year = yearSorted[i];
-				if (quality == "fhd") {
-					div("1080p");
-				} else if (quality == "hd") {
-					div("720p");
-				} else if (quality == "sd") {
-					div("480p");
-				}
-				function div(quality) {
-					const headerquality = `
-						<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
-							<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
-						</div>
-						<div style="position: absolute;top: 3px;right: 3px;border-radius: 4px;padding: 0.5px 4px;background-color: rgba(255,255,255,0.8);text-decoration: none;">
-							<span style="text-decoration: none;font-weight: bold;font-size: 11px;">${year}年</span>
-						</div>`;
-					document.querySelectorAll(".itemModuleIn > .thumbnailContainer > a")[i + qualityCount].insertAdjacentHTML('beforeend', headerquality);
-				}
-			}
-			qualityCount = qualityCount + sorted.length;
+			return [sorted, yearSorted];
 		}
-	}
-}
+		const [sorted, yearSorted] = sort(workIds, jsonResponse);
+		console.log(sorted);
+		console.log(yearSorted);
+		console.log(qualityCount);
 
+		for (let i = 0; i < sorted.length; i++) {
+			const quality = sorted[i];
+			const year = yearSorted[i];
+			if (quality == "fhd") {
+				div("1080p");
+			} else if (quality == "hd") {
+				div("720p");
+			} else if (quality == "sd") {
+				div("480p");
+			}
+			function div(quality) {
+				let headerquality;
+				if (torf) {
+					headerquality = `
+					<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+						<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+					</div>
+					<div style="position: absolute;top: 3px;right: 3px;border-radius: 4px;padding: 0.5px 4px;background-color: rgba(255,255,255,0.8);text-decoration: none;">
+						<span style="text-decoration: none;font-weight: bold;font-size: 11px;">${year}年</span>
+					</div>`;
+				} else {
+					headerquality = `
+					<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+						<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+					</div>`;
+				}
+				playerMypage[i + qualityCount].insertAdjacentHTML('beforeend', headerquality);
+			}
+		}
+		qualityCount = qualityCount + sorted.length;
+	};
+	fetchAsync();
+}
 // -----------------------------------------------------------------------------------------
+
 
 // サムネイルとテキストをクリックすると新規タブで開く + mouseover -------------------------------
 function thumbnailclick() {
@@ -184,22 +130,17 @@ function thumbnailclick() {
 // -----------------------------------------------------------------------------------------
 
 
-
-
-
 const path = window.location.pathname.replace('/animestore/', '');
 if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// 気になる、視聴履歴
-	qualityDisplay();
+	qualityAndYear(false);
 	thumbnailclick();
 
 } else if (path == "mp_viw_pc") {
 	// 続きから見る
 	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
 	for (let i = 0; i < playerMypage.length; i++) {
-		const getHref = document.querySelectorAll(".textContainer")[i];
-		const urlGet = new URL(getHref.getAttribute("href"));
-		const workId = urlGet.searchParams.get("workId");
+		const workId = new URL(document.querySelectorAll(".textContainer")[i].getAttribute("href")).searchParams.get("workId");
 		// header作成
 		const hrefLink = "https://animestore.docomo.ne.jp/animestore/ci_pc?workId=" + workId;
 		const title = document.querySelectorAll(".textContainer h2.line1 > span")[i].textContent;
@@ -223,39 +164,44 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		</header>`;
 		document.querySelectorAll(".itemModule > section")[i].insertAdjacentHTML('afterbegin', header);
 	}
-	qualityDisplay();
+	qualityAndYear(false);
 	thumbnailclick();
 
 } else if (path == "tp_pc") {
 	// トップページ
 	// 「現在放送中のアニメ」リンク先変更
+	let eventStop = false;
+	let addOpen = false;
 	const observer = new MutationObserver(() => {
 		// リンク先変更
-		const itemList = document.querySelectorAll(".itemWrapper > .p-slider__item > a.c-slide");
-		for (let i = 0; i < itemList.length; i++) {
-			const params = new URL(itemList[i].getAttribute("href")).searchParams;
-			const workId = params.get("workId");
+		const itemLists = document.querySelectorAll(".itemWrapper > .p-slider__item > a.c-slide");
+		for (const itemList of itemLists) {
+			const workId = new URL(itemList.getAttribute("href")).searchParams.get("workId");
 			const url = "https://animestore.docomo.ne.jp/animestore/ci_pc?workId=" + workId;
-			itemList[i].setAttribute("href", `${url}`);
+			itemList.setAttribute("href", `${url}`);
 		}
 
 		// 新規ウィンドウで開くeventを無効化
-		if (document.querySelector(".thumbnailContainer > a > .imgWrap16x9") == undefined) { return }
+		if (document.querySelector(".thumbnailContainer > a > .imgWrap16x9") == undefined) { return; }
 		const playerImg = document.querySelectorAll(".thumbnailContainer > a > .imgWrap16x9")[0];
-		playerImg.onclick = (event) => {
-			event.stopPropagation();
-		};
+		if (!eventStop) {
+			playerImg.addEventListener("click", e => {
+				e.stopPropagation();
+			})
+			eventStop = true;
+		}
 		// アイコンのeventが削除できないので、imgWrap16x9の子に移動する
 		const iconPlay = document.querySelector(".thumbnailContainer > a > i");
 		playerImg.appendChild(iconPlay);
 
 		// サムネイルをクリックすると新規タブで開く
-		const playerHome = document.querySelector(".thumbnailContainer > a");
-		const partId = playerHome.getAttribute("data-partid");
-		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + partId;
-		playerImg.addEventListener('click', () => {
-			open(openUrl);
-		});
+		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + document.querySelector(".thumbnailContainer > a").getAttribute("data-partid");
+		if (!addOpen) {
+			playerImg.addEventListener('click', () => {
+				open(openUrl);
+			});
+			addOpen = true;
+		}
 
 		// 「続きから視聴する」を削除
 		document.querySelector(".btnResume").remove();
@@ -299,63 +245,58 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		const playerSlider = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]");
 		let workIds = [];
 		for (let i = 0; i < playerSlider.length; i++) {
-			const getHref = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]")[i];
-			const workId = getHref.getAttribute("data-workid");
+			const workId = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]")[i].getAttribute("data-workid");
 			workIds.push(workId);
 		}
 		console.log(workIds);
-		const jsonUrl = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
-		console.log(jsonUrl);
-		const xhr = new XMLHttpRequest();
-		xhr.open("GET", jsonUrl);
-		xhr.send();
-		xhr.onload = () => {
-			if (xhr.status == 200) {
-				const jsonObj = JSON.parse(xhr.responseText);
+		const fetchAsync = async () => {
+			const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
+			const urlResponse = await fetch(url);
+			const jsonResponse = await urlResponse.json();
 
-				function sort(workids, response) {
-					const sorted = [];
-					for (const workid of workids) {
-						const item = response.find((res) => res["id"] == workid);
-						sorted.push(item["distribution"]["quality"]);
-					}
-					return sorted;
+			function sort(workids, jsonResponse) {
+				const sorted = [];
+				for (const workid of workids) {
+					const item = jsonResponse.find((res) => res["id"] == workid);
+					sorted.push(item["distribution"]["quality"]);
 				}
-				const sorted = sort(workIds, jsonObj);
-				console.log(sorted);
+				return sorted;
+			}
+			const sorted = sort(workIds, jsonResponse);
+			console.log(sorted);
 
-				for (let i = 0; i < sorted.length; i++) {
-					const quality = sorted[i]
-					if (quality == "fhd") {
-						div("1080p");
-					} else if (quality == "hd") {
-						div("720p");
-					} else if (quality == "sd") {
-						div("480p");
-					}
-					function div(quality) {
-						const headerquality = `
+			for (let i = 0; i < sorted.length; i++) {
+				const quality = sorted[i];
+				if (quality == "fhd") {
+					div("1080p");
+				} else if (quality == "hd") {
+					div("720p");
+				} else if (quality == "sd") {
+					div("480p");
+				}
+				function div(quality) {
+					const headerquality = `
 							<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
 								<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
 							</div>`;
-						document.querySelectorAll(".p-slider__item:not(.isBlack) > a.c-slide > .isAnime:not(.isOnAir)")[i].insertAdjacentHTML('afterend', headerquality);
-					}
+					document.querySelectorAll(".p-slider__item:not(.isBlack) > a.c-slide > .isAnime:not(.isOnAir)")[i].insertAdjacentHTML('afterend', headerquality);
 				}
 			}
-		};
+		}
+		fetchAsync();
 	}, 500);
 
 } else if (path == "ci_pc") {
 	// 作品ページ
-	const playerImg = document.querySelectorAll("section.clearfix > a");
-	for (let i = 0; i < playerImg.length; i++) {
-		const partId = playerImg[i].getAttribute("href").slice(5);
+	const playerImges = document.querySelectorAll("section.clearfix > a");
+	for (const playerImg of playerImges) {
+		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc" + playerImg.getAttribute("href").slice(5);
 		// 詳しく見るを開かずに、タブで動画を開く
-		playerImg[i].addEventListener('click', () => {
-			open("https://animestore.docomo.ne.jp/animestore/sc_d_pc" + partId);
+		playerImg.addEventListener('click', () => {
+			open(openUrl);
 		});
-		playerImg[i].style.cursor = "pointer";
-		playerImg[i].removeAttribute("href");
+		playerImg.style.cursor = "pointer";
+		playerImg.removeAttribute("href");
 	}
 
 	// // 詳しく見る
@@ -399,8 +340,8 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 	// マウスホイールで音量変更
 	const video = document.querySelector("video");
-	window.addEventListener("wheel", (event) => {
-		const wheelDelta = Math.sign(event.wheelDelta);
+	window.addEventListener("wheel", e => {
+		const wheelDelta = Math.sign(e.wheelDelta);
 		let volume = video.volume;
 		if (wheelDelta == 1) {
 			volume += 0.02;
@@ -429,7 +370,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 	// 解像度表示
 	const observer2 = new MutationObserver(() => {
-		qualityAndYear();
+		qualityAndYear(true);
 	});
 	observer2.observe(document.querySelector("#listContainer"), config);
 
@@ -453,7 +394,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 	// 解像度表示
 	const observer2 = new MutationObserver(() => {
-		qualityAndYear();
+		qualityAndYear(true);
 	});
 	const config2 = { childList: true };
 	console.log(document.querySelector("#listContainer"));
@@ -461,7 +402,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 } else if (path == "mpa_cmp_pc" || path == "series_pc") {
 	// コンプリート
 	// 解像度表示
-	qualityDisplay();
+	qualityAndYear(false);
 
 } else if (path == "CF/mylist_detail" || path == "mpa_shr_pc") {
 	// リスト
@@ -471,50 +412,45 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		const playerMypage = document.querySelectorAll(".p-mylistItemList__item > a");
 		let workIds = [];
 		for (let i = 0; i < playerMypage.length; i++) {
-			const getHref = playerMypage[i];
-			const urlGet = new URL(getHref.getAttribute("href"));
-			const workId = urlGet.searchParams.get("workId");
+			const workId = new URL(playerMypage[i].getAttribute("href")).searchParams.get("workId");
 			workIds.push(workId);
 		}
 		console.log(workIds);
-		const jsonUrl = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
-		const xhr = new XMLHttpRequest();
-		xhr.open("GET", jsonUrl);
-		xhr.send();
-		xhr.onload = () => {
-			if (xhr.status == 200) {
-				const jsonObj = JSON.parse(xhr.responseText);
+		const fetchAsync = async () => {
+			const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
+			const urlResponse = await fetch(url);
+			const jsonResponse = await urlResponse.json();
 
-				function sort(workids, response) {
-					const sorted = [];
-					for (const workid of workids) {
-						const item = response.find((res) => res["id"] == workid);
-						sorted.push(item["distribution"]["quality"]);
-					}
-					return sorted;
+			function sort(workids, jsonResponse) {
+				const sorted = [];
+				for (const workid of workids) {
+					const item = jsonResponse.find((res) => res["id"] == workid);
+					sorted.push(item["distribution"]["quality"]);
 				}
-				const sorted = sort(workIds, jsonObj);
-				console.log(sorted);
+				return sorted;
+			}
+			const sorted = sort(workIds, jsonResponse);
+			console.log(sorted);
 
-				for (let i = 0; i < sorted.length; i++) {
-					const quality = sorted[i];
-					if (quality == "fhd") {
-						div("1080p");
-					} else if (quality == "hd") {
-						div("720p");
-					} else if (quality == "sd") {
-						div("480p");
-					}
-					function div(quality) {
-						const headerquality = `
+			for (let i = 0; i < sorted.length; i++) {
+				const quality = sorted[i];
+				if (quality == "fhd") {
+					div("1080p");
+				} else if (quality == "hd") {
+					div("720p");
+				} else if (quality == "sd") {
+					div("480p");
+				}
+				function div(quality) {
+					const headerquality = `
 							<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
 								<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
 							</div>`;
-						playerMypage[i].insertAdjacentHTML('beforeend', headerquality);
-					}
+					playerMypage[i].insertAdjacentHTML('beforeend', headerquality);
 				}
 			}
 		};
+		fetchAsync();
 	});
 	const config = { childList: true, subtree: true };
 	observer.observe(document.querySelector(".p-mylistItemList"), config);
