@@ -3,7 +3,7 @@
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       none
-// @version     1.6.3
+// @version     1.6.4
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -32,26 +32,26 @@ function qualityAndYear(torf) {
 	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
 	let workIds = [];
 	for (let i = 0; i < playerMypage.length; i++) {
-		const workId = new URL(document.querySelectorAll(".textContainer")[i]).searchParams.get("workId");
+		const workId = new URL(document.querySelectorAll(".textContainer[href]")[i]).searchParams.get("workId");
 		workIds.push(workId);
 	}
 	workIds = workIds.slice(qualityCount);
 	console.log(workIds);
 	const fetchAsync = async () => {
 		const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
-		const urlResponse = await fetch(url);
-		const jsonResponse = await urlResponse.json();
-		function sort(workids, response) {
+		const response = await fetch(url);
+		const json = await response.json();
+		function sort(workids, json) {
 			const sorted = [];
 			const yearSorted = [];
 			for (const workid of workids) {
-				const item = response.find((res) => res["id"] == workid);
+				const item = json.find((res) => res["id"] == workid);
 				sorted.push(item["distribution"]["quality"]);
 				yearSorted.push(item["details"]["production_year"]);
 			}
 			return [sorted, yearSorted];
 		}
-		const [sorted, yearSorted] = sort(workIds, jsonResponse);
+		const [sorted, yearSorted] = sort(workIds, json);
 		console.log(sorted);
 		console.log(yearSorted);
 		console.log(qualityCount);
@@ -97,7 +97,7 @@ function thumbnailclick() {
 	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
 	for (let i = 0; i < playerMypage.length; i++) {
 		playerMypage[i].removeAttribute("onclick");
-		const getHref = document.querySelectorAll(".textContainer")[i];
+		const getHref = document.querySelectorAll(".textContainer[href]")[i];
 		const urlGet = new URL(getHref.getAttribute("href"));
 		const partId = urlGet.searchParams.get('partId');
 		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + partId;
@@ -109,7 +109,6 @@ function thumbnailclick() {
 			open(openUrl);
 		});
 		getHref.style.cursor = "pointer";
-		getHref.removeAttribute("href");
 
 		// mouseover
 		playerMypage[i].addEventListener('mouseover', () => {
@@ -125,6 +124,10 @@ function thumbnailclick() {
 		getHref.addEventListener('mouseleave', () => {
 			playerImg.style.opacity = "";
 		});
+	}
+	const getHref = document.querySelectorAll(".textContainer[href]");
+	for (let i = 0; i < getHref.length; i++) {
+		getHref[i].removeAttribute("href");
 	}
 }
 // -----------------------------------------------------------------------------------------
@@ -251,18 +254,18 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		console.log(workIds);
 		const fetchAsync = async () => {
 			const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
-			const urlResponse = await fetch(url);
-			const jsonResponse = await urlResponse.json();
+			const response = await fetch(url);
+			const json = await response.json();
 
-			function sort(workids, jsonResponse) {
+			function sort(workids, json) {
 				const sorted = [];
 				for (const workid of workids) {
-					const item = jsonResponse.find((res) => res["id"] == workid);
+					const item = json.find((res) => res["id"] == workid);
 					sorted.push(item["distribution"]["quality"]);
 				}
 				return sorted;
 			}
-			const sorted = sort(workIds, jsonResponse);
+			const sorted = sort(workIds, json);
 			console.log(sorted);
 
 			for (let i = 0; i < sorted.length; i++) {
@@ -418,18 +421,18 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		console.log(workIds);
 		const fetchAsync = async () => {
 			const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
-			const urlResponse = await fetch(url);
-			const jsonResponse = await urlResponse.json();
+			const response = await fetch(url);
+			const json = await response.json();
 
-			function sort(workids, jsonResponse) {
+			function sort(workids, json) {
 				const sorted = [];
 				for (const workid of workids) {
-					const item = jsonResponse.find((res) => res["id"] == workid);
+					const item = json.find((res) => res["id"] == workid);
 					sorted.push(item["distribution"]["quality"]);
 				}
 				return sorted;
 			}
-			const sorted = sort(workIds, jsonResponse);
+			const sorted = sort(workIds, json);
 			console.log(sorted);
 
 			for (let i = 0; i < sorted.length; i++) {
