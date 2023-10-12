@@ -2,8 +2,9 @@
 // @name        dアニメストアPlus
 // @namespace   https://github.com/chimaha/dAnimePlus
 // @match       https://animestore.docomo.ne.jp/animestore/*
-// @grant       none
-// @version     1.6.4
+// @grant       GM_getValue
+// @grant       GM_setValue
+// @version     1.6.5
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -36,7 +37,6 @@ function qualityAndYear(torf) {
 		workIds.push(workId);
 	}
 	workIds = workIds.slice(qualityCount);
-	console.log(workIds);
 	const fetchAsync = async () => {
 		const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
 		const response = await fetch(url);
@@ -52,9 +52,6 @@ function qualityAndYear(torf) {
 			return [sorted, yearSorted];
 		}
 		const [sorted, yearSorted] = sort(workIds, json);
-		console.log(sorted);
-		console.log(yearSorted);
-		console.log(qualityCount);
 
 		for (let i = 0; i < sorted.length; i++) {
 			const quality = sorted[i];
@@ -251,7 +248,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			const workId = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]")[i].getAttribute("data-workid");
 			workIds.push(workId);
 		}
-		console.log(workIds);
 		const fetchAsync = async () => {
 			const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
 			const response = await fetch(url);
@@ -266,7 +262,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 				return sorted;
 			}
 			const sorted = sort(workIds, json);
-			console.log(sorted);
 
 			for (let i = 0; i < sorted.length; i++) {
 				const quality = sorted[i];
@@ -323,6 +318,8 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// observer.observe(document.body, config);
 
 } else if (path == "sc_d_pc") {
+	const video = document.querySelector("video");
+
 	const observerTarget = document.querySelector(".backInfoTxt1");
 	const observer = new MutationObserver(() => {
 		// 再生ウィンドウ名をアニメ名に変更
@@ -330,19 +327,25 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		document.title = animeTitle;
 		// シークバーにタイトルと話数を表示
 		const episode = document.querySelector(".backInfoTxt2").textContent;
+		const getVolume = GM_getValue("volume");
+		video.volume = getVolume ? getVolume: "";
+
 		if (document.querySelector(".buttonArea > .title") == undefined) {
-			const div = '<div class="title" style="display: table; margin-left: 10px;"></div>';
+			const div = `
+			<div id="volumeText" style="display: table; position: relative; width: 25px; right: 5px;">
+                <span style="display: table-cell; color: #a0a09f; font-weight: 600; vertical-align: middle;">${Math.round(video.volume * 100)}</span>
+            </div>
+            <div id="title" style="display: table; margin-left: 20px;"></div>`;
 			document.querySelector(".buttonArea > .volume").insertAdjacentHTML("afterend", div);
 		}
 		const span = `<span style="display: table-cell; color: #a0a09f; font-weight: 700; vertical-align: middle;">${animeTitle} ${episode}</span>`
-		document.querySelector(".buttonArea > .title").innerHTML = span;
+		document.getElementById("title").innerHTML = span;
 	});
 	const config = { childList: true };
 	observer.observe(observerTarget, config);
 	observer.disconnect;
 
 	// マウスホイールで音量変更
-	const video = document.querySelector("video");
 	window.addEventListener("wheel", e => {
 		const wheelDelta = Math.sign(e.wheelDelta);
 		let volume = video.volume;
@@ -353,7 +356,24 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		}
 		volume = Math.max(0, Math.min(volume, 1));
 		video.volume = volume;
+
+		GM_setValue("volume", volume)
+		document.querySelector("#volumeText > span").textContent = Math.round(volume * 100);
 	});
+
+	let isDragging = false;
+	document.querySelector("#volumePopupIn").addEventListener('mousedown', (e) => {
+		isDragging = true;
+	});
+	document.addEventListener('mouseup', () => {
+		isDragging = false;
+	});
+	document.addEventListener("mousemove", () => {
+		if (isDragging) {
+			GM_setValue("volume", video.volume)
+			document.querySelector("#volumeText > span").textContent = Math.round(video.volume * 100);
+		}
+	})
 
 } else if (path == "sch_pc") {
 	// 検索結果
@@ -400,7 +420,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		qualityAndYear(true);
 	});
 	const config2 = { childList: true };
-	console.log(document.querySelector("#listContainer"));
 	observer2.observe(document.querySelector("#listContainer"), config2);
 } else if (path == "mpa_cmp_pc" || path == "series_pc") {
 	// コンプリート
@@ -418,7 +437,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			const workId = new URL(playerMypage[i].getAttribute("href")).searchParams.get("workId");
 			workIds.push(workId);
 		}
-		console.log(workIds);
 		const fetchAsync = async () => {
 			const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
 			const response = await fetch(url);
@@ -433,7 +451,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 				return sorted;
 			}
 			const sorted = sort(workIds, json);
-			console.log(sorted);
 
 			for (let i = 0; i < sorted.length; i++) {
 				const quality = sorted[i];
@@ -458,12 +475,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	const config = { childList: true, subtree: true };
 	observer.observe(document.querySelector(".p-mylistItemList"), config);
 	setTimeout(function () { observer.disconnect(); }, 1000);
-}
-
-// マイページのリンク先を気になるに変更
-if (document.querySelector("ul.common-p-header__menu")) {
-	const myPage = document.querySelector('ul.common-p-header__menu > li:first-child > a[href$="mp_viw"]');
-	myPage.setAttribute("href", "https://animestore.docomo.ne.jp/animestore/mpa_fav_pc");
 }
 
 // 詳しく見るを削除
