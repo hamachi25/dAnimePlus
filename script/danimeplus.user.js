@@ -4,7 +4,7 @@
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @version     1.6.5
+// @version     1.6.5.1
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -330,11 +330,9 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		const getVolume = GM_getValue("volume");
 		video.volume = getVolume ? getVolume: "";
 
-		if (document.querySelector(".buttonArea > .title") == undefined) {
+		if (document.getElementById("title") == undefined) {
 			const div = `
-			<div id="volumeText" style="display: table; position: relative; width: 25px; right: 5px;">
-                <span style="display: table-cell; color: #a0a09f; font-weight: 600; vertical-align: middle;">${Math.round(video.volume * 100)}</span>
-            </div>
+			<div id="volumeText" style="display: table; position: relative; width: 25px; right: 5px;"></div>
             <div id="title" style="display: table; margin-left: 20px;"></div>`;
 			document.querySelector(".buttonArea > .volume").insertAdjacentHTML("afterend", div);
 		}
@@ -358,7 +356,8 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		video.volume = volume;
 
 		GM_setValue("volume", volume)
-		document.querySelector("#volumeText > span").textContent = Math.round(volume * 100);
+		const span = `<span style="display: table-cell; color: #a0a09f; font-weight: 600; vertical-align: middle;">${Math.round(video.volume * 100)}</span>`;
+		document.querySelector("#volumeText > span").innerHTML = span;
 	});
 
 	let isDragging = false;
