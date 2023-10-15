@@ -4,7 +4,7 @@
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @version     1.6.5.2
+// @version     1.6.5.3
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -242,12 +242,13 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 	// 解像度表示
 	setTimeout(() => {
-		const playerSlider = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]");
+		const playerSlider = document.querySelectorAll('.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > div > input[data-workid]');
 		let workIds = [];
 		for (let i = 0; i < playerSlider.length; i++) {
-			const workId = document.querySelectorAll(".p-slider__item:not(.isBlack) > div > input[data-workid]")[i].getAttribute("data-workid");
+			const workId = document.querySelectorAll(`.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > div > input[data-workid]`)[i].getAttribute("data-workid");
 			workIds.push(workId);
 		}
+
 		const fetchAsync = async () => {
 			const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
 			const response = await fetch(url);
@@ -277,7 +278,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 							<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
 								<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
 							</div>`;
-					document.querySelectorAll(".p-slider__item:not(.isBlack) > a.c-slide > .isAnime:not(.isOnAir)")[i].insertAdjacentHTML('afterend', headerquality);
+					document.querySelectorAll(`.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > a.c-slide > .isAnime:not(.isOnAir)`)[i].insertAdjacentHTML('afterend', headerquality);
 				}
 			}
 		}
