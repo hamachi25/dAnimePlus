@@ -16,8 +16,11 @@ Firefox・ChromeとViolentmonkeyの組み合わせで動作確認済みです。
 
 # スクリーンショット
 ### サムネイルに解像度と制作年度を表示  
-＊制作年度は検索結果のみ
+＊制作年度は検索結果のみ  
 ![解像度を表示](https://github.com/chimaha/dAnimePlus/assets/107383950/ad437620-3e0c-4b37-91a6-39fbfcdc24a8)  
+
+表示のオンオフ可能  
+![解像度表示のオンオフ](https://github.com/chimaha/dAnimePlus/assets/107383950/de82049f-0d28-4b9f-bf54-4a516c964fbc)  
 ### トップページの「視聴中の作品」のタイトルをすべて表示
 ![視聴中の作品の表示を調整](https://github.com/chimaha/dAnimePlus/assets/107383950/b2a72ec6-df2c-4668-83f3-b2ecbb5b95af)  
 ### サムネイルとタイトル、どちらをクリックしても動画再生可能
