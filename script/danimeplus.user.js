@@ -4,7 +4,8 @@
 // @match       https://animestore.docomo.ne.jp/animestore/*
 // @grant       GM_getValue
 // @grant       GM_setValue
-// @version     1.6.5.3
+// @grant       GM_registerMenuCommand
+// @version     1.6.5.4
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -129,11 +130,13 @@ function thumbnailclick() {
 }
 // -----------------------------------------------------------------------------------------
 
+// 解像度を表示選択
+let menubool = GM_getValue("menu", true);
 
 const path = window.location.pathname.replace('/animestore/', '');
 if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// 気になる、視聴履歴
-	qualityAndYear(false);
+	if (menubool) { qualityAndYear(false); }
 	thumbnailclick();
 
 } else if (path == "mp_viw_pc") {
@@ -164,7 +167,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		</header>`;
 		document.querySelectorAll(".itemModule > section")[i].insertAdjacentHTML('afterbegin', header);
 	}
-	qualityAndYear(false);
+	if (menubool) { qualityAndYear(false); }
 	thumbnailclick();
 
 } else if (path == "tp_pc") {
@@ -241,49 +244,51 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	setTimeout(function () { observer.disconnect(); }, 1000);
 
 	// 解像度表示
-	setTimeout(() => {
-		const playerSlider = document.querySelectorAll('.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > div > input[data-workid]');
-		let workIds = [];
-		for (let i = 0; i < playerSlider.length; i++) {
-			const workId = document.querySelectorAll(`.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > div > input[data-workid]`)[i].getAttribute("data-workid");
-			workIds.push(workId);
-		}
-
-		const fetchAsync = async () => {
-			const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
-			const response = await fetch(url);
-			const json = await response.json();
-
-			function sort(workids, json) {
-				const sorted = [];
-				for (const workid of workids) {
-					const item = json.find((res) => res["id"] == workid);
-					sorted.push(item["distribution"]["quality"]);
-				}
-				return sorted;
+	if (menubool) {
+		setTimeout(() => {
+			const playerSlider = document.querySelectorAll('.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > div > input[data-workid]');
+			let workIds = [];
+			for (let i = 0; i < playerSlider.length; i++) {
+				const workId = document.querySelectorAll(`.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > div > input[data-workid]`)[i].getAttribute("data-workid");
+				workIds.push(workId);
 			}
-			const sorted = sort(workIds, json);
 
-			for (let i = 0; i < sorted.length; i++) {
-				const quality = sorted[i];
-				if (quality == "fhd") {
-					div("1080p");
-				} else if (quality == "hd") {
-					div("720p");
-				} else if (quality == "sd") {
-					div("480p");
+			const fetchAsync = async () => {
+				const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
+				const response = await fetch(url);
+				const json = await response.json();
+
+				function sort(workids, json) {
+					const sorted = [];
+					for (const workid of workids) {
+						const item = json.find((res) => res["id"] == workid);
+						sorted.push(item["distribution"]["quality"]);
+					}
+					return sorted;
 				}
-				function div(quality) {
-					const headerquality = `
+				const sorted = sort(workIds, json);
+
+				for (let i = 0; i < sorted.length; i++) {
+					const quality = sorted[i];
+					if (quality == "fhd") {
+						div("1080p");
+					} else if (quality == "hd") {
+						div("720p");
+					} else if (quality == "sd") {
+						div("480p");
+					}
+					function div(quality) {
+						const headerquality = `
 							<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
 								<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
 							</div>`;
-					document.querySelectorAll(`.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > a.c-slide > .isAnime:not(.isOnAir)`)[i].insertAdjacentHTML('afterend', headerquality);
+						document.querySelectorAll(`.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > a.c-slide > .isAnime:not(.isOnAir)`)[i].insertAdjacentHTML('afterend', headerquality);
+					}
 				}
 			}
-		}
-		fetchAsync();
-	}, 500);
+			fetchAsync();
+		}, 500);
+	}
 
 } else if (path == "ci_pc") {
 	// 作品ページ
@@ -330,7 +335,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		const episode = document.querySelector(".backInfoTxt2").textContent;
 		// 保存した音量に変更
 		const getVolume = GM_getValue("volume");
-		video.volume = getVolume ? getVolume: "";
+		video.volume = getVolume ? getVolume : "";
 
 		if (document.getElementById("title") == undefined) {
 			const div = `
@@ -395,10 +400,12 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	observer.observe(observerTarget, config);
 
 	// 解像度表示
-	const observer2 = new MutationObserver(() => {
-		qualityAndYear(true);
-	});
-	observer2.observe(document.querySelector("#listContainer"), config);
+	if (menubool) {
+		const observer2 = new MutationObserver(() => {
+			qualityAndYear(true);
+		});
+		observer2.observe(document.querySelector("#listContainer"), config);
+	}
 
 } else if (path == "gen_pc" || path == "c_all_pc" || path == "series_pc") {
 	// 検索結果(50音順・ジャンル)、シリーズ
@@ -419,65 +426,69 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	observer.observe(observerTarget, config);
 
 	// 解像度表示
-	const observer2 = new MutationObserver(() => {
-		qualityAndYear(true);
-	});
-	const config2 = { childList: true };
-	observer2.observe(document.querySelector("#listContainer"), config2);
+	if (menubool) {
+		const observer2 = new MutationObserver(() => {
+			qualityAndYear(true);
+		});
+		const config2 = { childList: true };
+		observer2.observe(document.querySelector("#listContainer"), config2);
+	}
 } else if (path == "mpa_cmp_pc" || path == "series_pc") {
 	// コンプリート
 	// 解像度表示
-	qualityAndYear(false);
+	if (menubool) { qualityAndYear(false); }
 
 } else if (path == "CF/mylist_detail" || path == "mpa_shr_pc") {
 	// リスト
 	// 解像度表示
-	const observer = new MutationObserver(() => {
-		if (document.querySelectorAll(".p-mylistItemList__item > a > .quality")[0]) { return; }
-		const playerMypage = document.querySelectorAll(".p-mylistItemList__item > a");
-		let workIds = [];
-		for (let i = 0; i < playerMypage.length; i++) {
-			const workId = new URL(playerMypage[i].getAttribute("href")).searchParams.get("workId");
-			workIds.push(workId);
-		}
-		const fetchAsync = async () => {
-			const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
-			const response = await fetch(url);
-			const json = await response.json();
-
-			function sort(workids, json) {
-				const sorted = [];
-				for (const workid of workids) {
-					const item = json.find((res) => res["id"] == workid);
-					sorted.push(item["distribution"]["quality"]);
-				}
-				return sorted;
+	if (menubool) {
+		const observer = new MutationObserver(() => {
+			if (document.querySelectorAll(".p-mylistItemList__item > a > .quality")[0]) { return; }
+			const playerMypage = document.querySelectorAll(".p-mylistItemList__item > a");
+			let workIds = [];
+			for (let i = 0; i < playerMypage.length; i++) {
+				const workId = new URL(playerMypage[i].getAttribute("href")).searchParams.get("workId");
+				workIds.push(workId);
 			}
-			const sorted = sort(workIds, json);
+			const fetchAsync = async () => {
+				const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
+				const response = await fetch(url);
+				const json = await response.json();
 
-			for (let i = 0; i < sorted.length; i++) {
-				const quality = sorted[i];
-				if (quality == "fhd") {
-					div("1080p");
-				} else if (quality == "hd") {
-					div("720p");
-				} else if (quality == "sd") {
-					div("480p");
+				function sort(workids, json) {
+					const sorted = [];
+					for (const workid of workids) {
+						const item = json.find((res) => res["id"] == workid);
+						sorted.push(item["distribution"]["quality"]);
+					}
+					return sorted;
 				}
-				function div(quality) {
-					const headerquality = `
+				const sorted = sort(workIds, json);
+
+				for (let i = 0; i < sorted.length; i++) {
+					const quality = sorted[i];
+					if (quality == "fhd") {
+						div("1080p");
+					} else if (quality == "hd") {
+						div("720p");
+					} else if (quality == "sd") {
+						div("480p");
+					}
+					function div(quality) {
+						const headerquality = `
 							<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
 								<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
 							</div>`;
-					playerMypage[i].insertAdjacentHTML('beforeend', headerquality);
+						playerMypage[i].insertAdjacentHTML('beforeend', headerquality);
+					}
 				}
-			}
-		};
-		fetchAsync();
-	});
-	const config = { childList: true, subtree: true };
-	observer.observe(document.querySelector(".p-mylistItemList"), config);
-	setTimeout(function () { observer.disconnect(); }, 1000);
+			};
+			fetchAsync();
+		});
+		const config = { childList: true, subtree: true };
+		observer.observe(document.querySelector(".p-mylistItemList"), config);
+		setTimeout(function () { observer.disconnect(); }, 1000);
+	}
 }
 
 // 詳しく見るを削除
@@ -485,3 +496,16 @@ const detail = document.querySelectorAll('.itemModule > section > .detail');
 for (let i = 0; i < detail.length; i++) {
 	detail[i].style.display = "none";
 }
+
+
+// 解像度を表示メニュー
+let menuText = menubool ? "解像度を表示：ON✔️" : "解像度を表示：OFF❌";
+GM_registerMenuCommand(menuText, () => {
+	if (menubool) {
+		const showResolution = false;
+		GM_setValue("menu", showResolution);
+	} else {
+		const showResolution = true;
+		GM_setValue("menu", showResolution);
+	}
+});
