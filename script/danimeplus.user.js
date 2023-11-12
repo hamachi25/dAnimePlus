@@ -521,7 +521,7 @@ GM_registerMenuCommand(resolutionText, () => {
 	}
 });
 // シークバーにタイトルと音量を表示設定
-let titleText = titlebool ? "シークバーにタイトルを表示：ON✔️" : "シークバーにタイトル：OFF❌";
+let titleText = titlebool ? "シークバーにタイトルを表示：ON✔️" : "シークバーにタイトルを表示：OFF❌";
 GM_registerMenuCommand(titleText, () => {
 	if (titlebool) {
 		const showTitle = false;
