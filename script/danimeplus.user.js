@@ -5,7 +5,7 @@
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_registerMenuCommand
-// @version     1.6.5.4
+// @version     1.6.5.5
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -131,12 +131,13 @@ function thumbnailclick() {
 // -----------------------------------------------------------------------------------------
 
 // 解像度を表示選択
-let menubool = GM_getValue("menu", true);
+let resolutionbool = GM_getValue("menu", true);
+let titlebool = GM_getValue("seekbarTitle", true);
 
 const path = window.location.pathname.replace('/animestore/', '');
 if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// 気になる、視聴履歴
-	if (menubool) { qualityAndYear(false); }
+	if (resolutionbool) { qualityAndYear(false); }
 	thumbnailclick();
 
 } else if (path == "mp_viw_pc") {
@@ -167,7 +168,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		</header>`;
 		document.querySelectorAll(".itemModule > section")[i].insertAdjacentHTML('afterbegin', header);
 	}
-	if (menubool) { qualityAndYear(false); }
+	if (resolutionbool) { qualityAndYear(false); }
 	thumbnailclick();
 
 } else if (path == "tp_pc") {
@@ -244,7 +245,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	setTimeout(function () { observer.disconnect(); }, 1000);
 
 	// 解像度表示
-	if (menubool) {
+	if (resolutionbool) {
 		setTimeout(() => {
 			const playerSlider = document.querySelectorAll('.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > div > input[data-workid]');
 			let workIds = [];
@@ -326,31 +327,33 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 } else if (path == "sc_d_pc") {
 	const video = document.querySelector("video");
 
-	const observerTarget = document.querySelector(".backInfoTxt1");
-	const observer = new MutationObserver(() => {
-		// 再生ウィンドウ名をアニメ名に変更
-		const animeTitle = observerTarget.textContent
-		document.title = animeTitle;
-		// シークバーにタイトルと話数を表示
-		const episode = document.querySelector(".backInfoTxt2").textContent;
-		// 保存した音量に変更
-		const getVolume = GM_getValue("volume");
-		video.volume = getVolume ? getVolume : "";
+	if (titlebool) {
+		const observerTarget = document.querySelector(".backInfoTxt1");
+		const observer = new MutationObserver(() => {
+			// 再生ウィンドウ名をアニメ名に変更
+			const animeTitle = observerTarget.textContent
+			document.title = animeTitle;
+			// シークバーにタイトルと話数を表示
+			const episode = document.querySelector(".backInfoTxt2").textContent;
+			// 保存した音量に変更
+			const getVolume = GM_getValue("volume");
+			video.volume = getVolume ? getVolume : "";
 
-		if (document.getElementById("title") == undefined) {
-			const div = `
+			if (document.getElementById("title") == undefined) {
+				const div = `
 			<div id="volumeText" style="display: table; position: relative; width: 25px; right: 5px;">
 			    <span style="display: table-cell; color: #a0a09f; font-weight: 600; vertical-align: middle;">${Math.round(video.volume * 100)}</span>
 			</div>
             <div id="title" style="display: table; margin-left: 20px;"></div>`;
-			document.querySelector(".buttonArea > .volume").insertAdjacentHTML("afterend", div);
-		}
-		const span = `<span style="display: table-cell; color: #a0a09f; font-weight: 700; vertical-align: middle;">${animeTitle} ${episode}</span>`
-		document.getElementById("title").innerHTML = span;
-	});
-	const config = { childList: true };
-	observer.observe(observerTarget, config);
-	observer.disconnect;
+				document.querySelector(".buttonArea > .volume").insertAdjacentHTML("afterend", div);
+			}
+			const span = `<span style="display: table-cell; color: #a0a09f; font-weight: 700; vertical-align: middle;">${animeTitle} ${episode}</span>`
+			document.getElementById("title").innerHTML = span;
+		});
+		const config = { childList: true };
+		observer.observe(observerTarget, config);
+		observer.disconnect;
+	}
 
 	// マウスホイールで音量変更
 	window.addEventListener("wheel", e => {
@@ -408,7 +411,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	observer.observe(observerTarget, config);
 
 	// 解像度表示
-	if (menubool) {
+	if (resolutionbool) {
 		const observer2 = new MutationObserver(() => {
 			qualityAndYear(true);
 		});
@@ -434,7 +437,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	observer.observe(observerTarget, config);
 
 	// 解像度表示
-	if (menubool) {
+	if (resolutionbool) {
 		const observer2 = new MutationObserver(() => {
 			qualityAndYear(true);
 		});
@@ -444,12 +447,12 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 } else if (path == "mpa_cmp_pc" || path == "series_pc") {
 	// コンプリート
 	// 解像度表示
-	if (menubool) { qualityAndYear(false); }
+	if (resolutionbool) { qualityAndYear(false); }
 
 } else if (path == "CF/mylist_detail" || path == "mpa_shr_pc") {
 	// リスト
 	// 解像度表示
-	if (menubool) {
+	if (resolutionbool) {
 		const observer = new MutationObserver(() => {
 			if (document.querySelectorAll(".p-mylistItemList__item > a > .quality")[0]) { return; }
 			const playerMypage = document.querySelectorAll(".p-mylistItemList__item > a");
@@ -506,15 +509,25 @@ for (let i = 0; i < detail.length; i++) {
 }
 
 
-// 解像度を表示メニュー
-let menuText = menubool ? "解像度を表示：ON✔️" : "解像度を表示：OFF❌";
-GM_registerMenuCommand(menuText, () => {
-	if (menubool) {
+// 解像度を表示設定
+let resolutionText = resolutionbool ? "解像度を表示：ON✔️" : "解像度を表示：OFF❌";
+GM_registerMenuCommand(resolutionText, () => {
+	if (resolutionbool) {
 		const showResolution = false;
 		GM_setValue("menu", showResolution);
 	} else {
 		const showResolution = true;
 		GM_setValue("menu", showResolution);
 	}
+});
+// シークバーにタイトルと音量を表示設定
+let titleText = titlebool ? "シークバーにタイトルを表示：ON✔️" : "シークバーにタイトル：OFF❌";
+GM_registerMenuCommand(titleText, () => {
+	if (titlebool) {
 		const showTitle = false;
+		GM_setValue("seekbarTitle", showTitle);
+	} else {
+		const showTitle = true;
+		GM_setValue("seekbarTitle", showTitle);
+	}
 });
