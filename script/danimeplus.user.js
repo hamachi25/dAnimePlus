@@ -369,6 +369,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		document.querySelector("#volumeText").innerHTML = span;
 	});
 
+	// 音量バーを操作した場合
 	let isDragging = false;
 	document.querySelector("#volumePopupIn").addEventListener('mousedown', (e) => {
 		isDragging = true;
@@ -379,6 +380,13 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	document.addEventListener("mousemove", () => {
 		if (isDragging) {
 			GM_setValue("volume", video.volume)
+			document.querySelector("#volumeText > span").textContent = Math.round(video.volume * 100);
+		}
+	})
+
+	// 上下キーで音量変更した場合
+	document.addEventListener("keyup", e => {
+		if (e.key == "ArrowDown" || e.key == "ArrowUp") {
 			document.querySelector("#volumeText > span").textContent = Math.round(video.volume * 100);
 		}
 	})
@@ -508,4 +516,5 @@ GM_registerMenuCommand(menuText, () => {
 		const showResolution = true;
 		GM_setValue("menu", showResolution);
 	}
+		const showTitle = false;
 });
