@@ -5,7 +5,7 @@
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_registerMenuCommand
-// @version     1.6.5.5
+// @version     1.6.5.6
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -32,6 +32,8 @@
 let qualityCount = 0;
 function qualityAndYear(torf) {
 	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
+	if (playerMypage.length == 0) { return }
+
 	let workIds = [];
 	for (let i = 0; i < playerMypage.length; i++) {
 		const workId = new URL(document.querySelectorAll(".textContainer[href]")[i]).searchParams.get("workId");
@@ -68,17 +70,17 @@ function qualityAndYear(torf) {
 				let headerquality;
 				if (torf) {
 					headerquality = `
-					<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
-						<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
-					</div>
-					<div style="position: absolute;top: 3px;right: 3px;border-radius: 4px;padding: 0.5px 4px;background-color: rgba(255,255,255,0.8);text-decoration: none;">
-						<span style="text-decoration: none;font-weight: bold;font-size: 11px;">${year}年</span>
-					</div>`;
+						<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+							<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+						</div>
+						<div style="position: absolute;top: 3px;right: 3px;border-radius: 4px;padding: 0.5px 4px;background-color: rgba(255,255,255,0.8);text-decoration: none;">
+							<span style="text-decoration: none;font-weight: bold;font-size: 11px;">${year}年</span>
+						</div>`;
 				} else {
 					headerquality = `
-					<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
-						<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
-					</div>`;
+						<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
+							<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+						</div>`;
 				}
 				playerMypage[i + qualityCount].insertAdjacentHTML('beforeend', headerquality);
 			}
@@ -93,6 +95,8 @@ function qualityAndYear(torf) {
 // サムネイルとテキストをクリックすると新規タブで開く + mouseover -------------------------------
 function thumbnailclick() {
 	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
+	if (playerMypage.length == 0) { return }
+
 	for (let i = 0; i < playerMypage.length; i++) {
 		playerMypage[i].removeAttribute("onclick");
 		const getHref = document.querySelectorAll(".textContainer[href]")[i];
@@ -130,6 +134,36 @@ function thumbnailclick() {
 }
 // -----------------------------------------------------------------------------------------
 
+function showOrder() {
+	document.head.insertAdjacentHTML('beforeend', '<style id="show-order"></style>');
+	document.head.lastElementChild.textContent = `
+		.minict_wrapper > span {
+			display: none;
+		}
+		.minict_wrapper > ul {
+			display: flex !important;
+			border: none;
+			border-top: none;
+			box-shadow: none;
+			width: max-content;
+			background: none;
+			top: -20px;
+			right: -10px;
+		}
+		.minict_wrapper > ul > li {
+			padding: 20px 30px;
+			border-bottom: none;
+		}`;
+}
+
+function restCount() {
+	const observer = new MutationObserver(() => {
+		qualityCount = 0;
+	});
+	const config = { childList: true };
+	observer.observe(document.querySelector(".listHeader > p.headerText"), config);
+}
+
 // 解像度を表示選択
 let resolutionbool = GM_getValue("menu", true);
 let titlebool = GM_getValue("seekbarTitle", true);
@@ -153,19 +187,19 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		const id3 = workId.slice(4, 5);
 		const imgId = "https://cs1.animestore.docomo.ne.jp/anime_kv/img/" + id1 + "/" + id2 + "/" + id3 + "/" + workId + "_1_3.png";
 		const header = `
-		<header class="">
-			<a href="${hrefLink}">
-				<p class="line2"><span class="ui-clamp webkit2LineClamp">${title}</span></p>
-				<div class="titleThumbnail">
-					<div class="titleThumbnailIn">
-						<i class="icon "></i>
-						<div class="imgWrap16x9">
-							<img class=" verticallyLong lazyloaded" src="${imgId}" alt="パッケージ画像" width="640" height="360">
+			<header class="">
+				<a href="${hrefLink}">
+					<p class="line2"><span class="ui-clamp webkit2LineClamp">${title}</span></p>
+					<div class="titleThumbnail">
+						<div class="titleThumbnailIn">
+							<i class="icon "></i>
+							<div class="imgWrap16x9">
+								<img class=" verticallyLong lazyloaded" src="${imgId}" alt="パッケージ画像" width="640" height="360">
+							</div>
 						</div>
 					</div>
-				</div>
-			</a>
-		</header>`;
+				</a>
+			</header>`;
 		document.querySelectorAll(".itemModule > section")[i].insertAdjacentHTML('afterbegin', header);
 	}
 	if (resolutionbool) { qualityAndYear(false); }
@@ -179,6 +213,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	const observer = new MutationObserver(() => {
 		// リンク先変更
 		const itemLists = document.querySelectorAll(".itemWrapper > .p-slider__item > a.c-slide");
+		if (itemLists.length == 0) { return }
 		for (const itemList of itemLists) {
 			const workId = new URL(itemList.getAttribute("href")).searchParams.get("workId");
 			const url = "https://animestore.docomo.ne.jp/animestore/ci_pc?workId=" + workId;
@@ -186,7 +221,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		}
 
 		// 新規ウィンドウで開くeventを無効化
-		if (document.querySelector(".thumbnailContainer > a > .imgWrap16x9") == undefined) { return; }
+		if (document.querySelector(".thumbnailContainer > a > .imgWrap16x9") == undefined) { return }
 		const playerImg = document.querySelectorAll(".thumbnailContainer > a > .imgWrap16x9")[0];
 		if (!eventStop) {
 			playerImg.addEventListener("click", e => {
@@ -196,7 +231,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		}
 		// アイコンのeventが削除できないので、imgWrap16x9の子に移動する
 		const iconPlay = document.querySelector(".thumbnailContainer > a > i");
-		playerImg.appendChild(iconPlay);
+		iconPlay ? playerImg.appendChild(iconPlay) : "";
 
 		// サムネイルをクリックすると新規タブで開く
 		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + document.querySelector(".thumbnailContainer > a").getAttribute("data-partid");
@@ -208,7 +243,8 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		}
 
 		// 「続きから視聴する」を削除
-		document.querySelector(".btnResume").remove();
+		const btnResume = document.querySelector(".btnResume");
+		btnResume ? btnResume.remove() : "";
 		// タイトルの横幅を増やす
 		document.querySelector(".pageHeader .title").style.width = "944px";
 		// mouseover
@@ -288,7 +324,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 				}
 			}
 			fetchAsync();
-		}, 500);
+		}, 700);
 	}
 
 } else if (path == "ci_pc") {
@@ -325,6 +361,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// observer.observe(document.body, config);
 
 } else if (path == "sc_d_pc") {
+	// 再生画面
 	const video = document.querySelector("video");
 
 	if (titlebool) {
@@ -341,10 +378,10 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 			if (document.getElementById("title") == undefined) {
 				const div = `
-			<div id="volumeText" style="display: table; position: relative; width: 25px; right: 5px;">
-			    <span style="display: table-cell; color: #a0a09f; font-weight: 600; vertical-align: middle;">${Math.round(video.volume * 100)}</span>
-			</div>
-            <div id="title" style="display: table; margin-left: 20px;"></div>`;
+					<div id="volumeText" style="display: table; position: relative; width: 25px; right: 5px;">
+					    <span style="display: table-cell; color: #a0a09f; font-weight: 600; vertical-align: middle;">${Math.round(video.volume * 100)}</span>
+					</div>
+            		<div id="title" style="display: table; margin-left: 20px;"></div>`;
 				document.querySelector(".buttonArea > .volume").insertAdjacentHTML("afterend", div);
 			}
 			const span = `<span style="display: table-cell; color: #a0a09f; font-weight: 700; vertical-align: middle;">${animeTitle} ${episode}</span>`
@@ -393,58 +430,21 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			document.querySelector("#volumeText > span").textContent = Math.round(video.volume * 100);
 		}
 	})
+} else if (path == "sch_pc" || path == "gen_pc" || path == "c_all_pc" || path == "series_pc" || path == "tag_pc") {
+	// 検索結果、シリーズ、ランキング
 
-} else if (path == "sch_pc") {
-	// 検索結果
-	// 表示順選択肢を常に表示
-	const observerTarget = document.querySelector(".listHeader > p.headerText");
-	const observer = new MutationObserver(() => {
-		document.querySelector(".minict_wrapper > span").style.display = "none";
-		document.querySelector(".minict_wrapper > ul").style.cssText = "display: flex; border: none; border-top: none; box-shadow: none; width: max-content; background: none; top: -20px; right: -10px;"
-		const searchli = document.querySelectorAll(".minict_wrapper > ul > li");
-		for (let i = 0; i < searchli.length; i++) {
-			searchli[i].style.cssText = "padding: 20px 30px; border-bottom: none;"
-		}
-		qualityCount = 0;
-	});
-	const config = { childList: true };
-	observer.observe(observerTarget, config);
+	showOrder();
+	restCount();
 
 	// 解像度表示
 	if (resolutionbool) {
 		const observer2 = new MutationObserver(() => {
 			qualityAndYear(true);
 		});
+		const config = { childList: true };
 		observer2.observe(document.querySelector("#listContainer"), config);
 	}
-
-} else if (path == "gen_pc" || path == "c_all_pc" || path == "series_pc") {
-	// 検索結果(50音順・ジャンル)、シリーズ
-	// 表示順選択肢を常に表示
-	const observerTarget = document.querySelector(".listHeader > p.headerText");
-	const observer = new MutationObserver(() => {
-		setTimeout(() => {
-			document.querySelector(".minict_wrapper > span").style.display = "none";
-			document.querySelector(".minict_wrapper > ul").style.cssText = "display: flex; border: none; border-top: none; box-shadow: none; width: max-content; background: none; top: -20px; right: -10px;"
-			const searchli = document.querySelectorAll(".minict_wrapper > ul > li");
-			for (let i = 0; i < searchli.length; i++) {
-				searchli[i].style.cssText = "padding: 20px 30px; border-bottom: none;"
-			}
-		}, 300);
-		qualityCount = 0;
-	});
-	const config = { childList: true };
-	observer.observe(observerTarget, config);
-
-	// 解像度表示
-	if (resolutionbool) {
-		const observer2 = new MutationObserver(() => {
-			qualityAndYear(true);
-		});
-		const config2 = { childList: true };
-		observer2.observe(document.querySelector("#listContainer"), config2);
-	}
-} else if (path == "mpa_cmp_pc" || path == "series_pc") {
+} else if (path == "mpa_cmp_pc") {
 	// コンプリート
 	// 解像度表示
 	if (resolutionbool) { qualityAndYear(false); }
@@ -454,7 +454,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// 解像度表示
 	if (resolutionbool) {
 		const observer = new MutationObserver(() => {
-			if (document.querySelectorAll(".p-mylistItemList__item > a > .quality")[0]) { return; }
+			if (document.querySelectorAll(".p-mylistItemList__item > a > .quality")[0]) { return }
 			const playerMypage = document.querySelectorAll(".p-mylistItemList__item > a");
 			let workIds = [];
 			for (let i = 0; i < playerMypage.length; i++) {
