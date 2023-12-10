@@ -5,7 +5,7 @@
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_registerMenuCommand
-// @version     1.6.5.6
+// @version     1.6.6
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -30,7 +30,60 @@
 
 // 解像度表示 + 制作年度表示------------------------------------------------------------------
 let qualityCount = 0;
+
+function addResolutionStyle() {
+	if (document.getElementById("resolution-style")) { return }
+	document.head.insertAdjacentHTML('beforeend', '<style id="resolution-style"></style>');
+	document.head.lastElementChild.textContent = `
+		.quality,
+		.production-year {
+			position: absolute;
+			top: 3px;
+			border-radius: 4px;
+			padding: 0.5px 4px;
+			background-color: rgba(255,255,255,0.8);
+			text-decoration: none !important;
+		}
+		.quality {
+			left: 3px;
+		}
+		.production-year {
+			right: 3px;
+		}
+		.quality > span,
+		.production-year > span {
+			font-size: 11px;
+			font-weight: bold;
+			text-decoration: none !important;
+		}`;
+}
+
+function sort(workids, json) {
+	const sorted = [];
+	const yearSorted = [];
+	for (const workid of workids) {
+		const item = json.find((res) => res["id"] == workid);
+		sorted.push(item["distribution"]["quality"]);
+		yearSorted.push(item["details"]["production_year"]);
+	}
+	return [sorted, yearSorted];
+}
+
+function resolutionBranch(div, quality) {
+	switch (quality) {
+		case "fhd":
+			div("1080p");
+			break;
+		case "hd":
+			div("720p");
+			break;
+		default:
+			div("480p");
+	}
+}
+
 function qualityAndYear(torf) {
+	addResolutionStyle();
 	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
 	if (playerMypage.length == 0) { return }
 
@@ -44,46 +97,30 @@ function qualityAndYear(torf) {
 		const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
 		const response = await fetch(url);
 		const json = await response.json();
-		function sort(workids, json) {
-			const sorted = [];
-			const yearSorted = [];
-			for (const workid of workids) {
-				const item = json.find((res) => res["id"] == workid);
-				sorted.push(item["distribution"]["quality"]);
-				yearSorted.push(item["details"]["production_year"]);
-			}
-			return [sorted, yearSorted];
-		}
 		const [sorted, yearSorted] = sort(workIds, json);
 
 		for (let i = 0; i < sorted.length; i++) {
 			const quality = sorted[i];
 			const year = yearSorted[i];
-			if (quality == "fhd") {
-				div("1080p");
-			} else if (quality == "hd") {
-				div("720p");
-			} else if (quality == "sd") {
-				div("480p");
-			}
 			function div(quality) {
 				let headerquality;
 				if (torf) {
 					headerquality = `
-						<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
-							<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+						<div class="quality">
+							<span>${quality}</span>
 						</div>
-						<div style="position: absolute;top: 3px;right: 3px;border-radius: 4px;padding: 0.5px 4px;background-color: rgba(255,255,255,0.8);text-decoration: none;">
-							<span style="text-decoration: none;font-weight: bold;font-size: 11px;">${year}年</span>
+						<div class="production-year">
+							<span>${year}年</span>
 						</div>`;
 				} else {
 					headerquality = `
-						<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
-							<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+						<div class="quality">
+							<span>${quality}</span>
 						</div>`;
 				}
 				playerMypage[i + qualityCount].insertAdjacentHTML('beforeend', headerquality);
 			}
+			resolutionBranch(div, quality);
 		}
 		qualityCount = qualityCount + sorted.length;
 	};
@@ -275,18 +312,21 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		headerLink.addEventListener('click', () => {
 			open(openUrl);
 		});
-	});
-	const config = { childList: true, subtree: true };
-	observer.observe(document.body, config);
-	setTimeout(function () { observer.disconnect(); }, 1000);
 
-	// 解像度表示
-	if (resolutionbool) {
-		setTimeout(() => {
-			const playerSlider = document.querySelectorAll('.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > div > input[data-workid]');
+		if (resolutionbool) {
+			addResolutionStyle();
+			const playerSlider = document.querySelectorAll('.p-slider__item:not(.add-resolution,.isBlack,[data-link^="/animestore/series?seriesId="]) > div > input[data-workid]');
+			if (playerSlider.length == 0) { return }
+			const insertTarget = document.querySelectorAll(`.p-slider__item:not(.add-resolution,.isBlack,[data-link^="/animestore/series?seriesId="]) > a.c-slide > .isAnime:not(.isOnAir)`);
+			const addClassTarget = Array.from(document.querySelectorAll('.p-slider__item:not(.add-resolution,.isBlack,[data-link^="/animestore/series?seriesId="])'))
+				.filter(slider => slider.querySelector("input[data-workid]"));
+			// Firefoxがhas対応したら切り替える
+			// const addClassTarget = document.querySelectorAll('.p-slider__item:not(.add-resolution,.isBlack,[data-link^="/animestore/series?seriesId="]):has(> div > input[data-workid])');
+
 			let workIds = [];
 			for (let i = 0; i < playerSlider.length; i++) {
-				const workId = document.querySelectorAll(`.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > div > input[data-workid]`)[i].getAttribute("data-workid");
+				const workId = playerSlider[i].getAttribute("data-workid");
+				addClassTarget[i].classList.add("add-resolution");
 				workIds.push(workId);
 			}
 
@@ -294,39 +334,26 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 				const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
 				const response = await fetch(url);
 				const json = await response.json();
-
-				function sort(workids, json) {
-					const sorted = [];
-					for (const workid of workids) {
-						const item = json.find((res) => res["id"] == workid);
-						sorted.push(item["distribution"]["quality"]);
-					}
-					return sorted;
-				}
-				const sorted = sort(workIds, json);
+				const [sorted, yearSorted] = sort(workIds, json);
 
 				for (let i = 0; i < sorted.length; i++) {
 					const quality = sorted[i];
-					if (quality == "fhd") {
-						div("1080p");
-					} else if (quality == "hd") {
-						div("720p");
-					} else if (quality == "sd") {
-						div("480p");
-					}
 					function div(quality) {
 						const headerquality = `
-							<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
-								<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+							<div class="quality">
+								<span>${quality}</span>
 							</div>`;
-						document.querySelectorAll(`.p-slider__item:not(.isBlack,[data-link^="/animestore/series?seriesId="]) > a.c-slide > .isAnime:not(.isOnAir)`)[i].insertAdjacentHTML('afterend', headerquality);
+						insertTarget[i].insertAdjacentHTML('afterend', headerquality);
 					}
+					resolutionBranch(div, quality);
 				}
 			}
 			fetchAsync();
-		}, 700);
-	}
-
+		}
+	});
+	const config = { childList: true, subtree: true };
+	observer.observe(document.body, config);
+	setTimeout(function () { observer.disconnect(); }, 2000);
 } else if (path == "ci_pc") {
 	// 作品ページ
 	const playerImges = document.querySelectorAll("section.clearfix > a");
@@ -339,27 +366,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		playerImg.style.cursor = "pointer";
 		playerImg.removeAttribute("href");
 	}
-
-	// // 詳しく見る
-	// const observer = new MutationObserver(() => {
-	// 	if (document.querySelector("modal") != undefined && document.querySelector("#openVideo") == undefined) {
-	// 		if (document.querySelector("#streamingQuality") == undefined) { return }
-	// 		document.querySelector("#streamingQuality").remove();
-	// 		const urlGet = new URL(location.href);
-	// 		const partId = urlGet.searchParams.get('partId');
-	// 		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + partId;
-	// 		const div = `<div id="openVideo" class="list"><a class="normal">視聴する</a></div>`;
-	// 		document.querySelector(".playerContainer > div").insertAdjacentHTML('afterbegin', div);
-	// 		// 詳しく見るで新規タブで開く
-	// 		document.querySelector("#openVideo > a").addEventListener('click', () => {
-	// 			open(openUrl);
-	// 		});
-	// 		document.querySelector("#openVideo > a").style.cursor = "pointer";
-	// 	}
-	// });
-	// const config = { childList: true, subtree: true };
-	// observer.observe(document.body, config);
-
 } else if (path == "sc_d_pc") {
 	// 再生画面
 	const video = document.querySelector("video");
@@ -454,6 +460,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// 解像度表示
 	if (resolutionbool) {
 		const observer = new MutationObserver(() => {
+			addResolutionStyle();
 			if (document.querySelectorAll(".p-mylistItemList__item > a > .quality")[0]) { return }
 			const playerMypage = document.querySelectorAll(".p-mylistItemList__item > a");
 			let workIds = [];
@@ -465,40 +472,25 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 				const url = "https://animestore.docomo.ne.jp/animestore/rest/v1/works?work_id=" + workIds.join(",");
 				const response = await fetch(url);
 				const json = await response.json();
-
-				function sort(workids, json) {
-					const sorted = [];
-					for (const workid of workids) {
-						const item = json.find((res) => res["id"] == workid);
-						sorted.push(item["distribution"]["quality"]);
-					}
-					return sorted;
-				}
-				const sorted = sort(workIds, json);
+				const [sorted, yearSorted] = sort(workIds, json);
 
 				for (let i = 0; i < sorted.length; i++) {
 					const quality = sorted[i];
-					if (quality == "fhd") {
-						div("1080p");
-					} else if (quality == "hd") {
-						div("720p");
-					} else if (quality == "sd") {
-						div("480p");
-					}
 					function div(quality) {
 						const headerquality = `
-							<div class="quality" style="position: absolute; top: 3px; left: 3px; border-radius: 4px; padding: 0.5px 4px; background-color: rgba(255,255,255,0.8); text-decoration: none;">
-								<span style="font-size: 11px; font-weight: bold; text-decoration: none;">${quality}</span>
+							<div class="quality">
+								<span>${quality}</span>
 							</div>`;
 						playerMypage[i].insertAdjacentHTML('beforeend', headerquality);
 					}
+					resolutionBranch(div, quality);
 				}
 			};
 			fetchAsync();
 		});
 		const config = { childList: true, subtree: true };
 		observer.observe(document.querySelector(".p-mylistItemList"), config);
-		setTimeout(function () { observer.disconnect(); }, 1000);
+		setTimeout(function () { observer.disconnect(); }, 2000);
 	}
 }
 
