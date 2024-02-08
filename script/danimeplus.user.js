@@ -5,7 +5,7 @@
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_registerMenuCommand
-// @version     1.6.6
+// @version     1.7
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -147,22 +147,19 @@ function thumbnailclick() {
 		getHref.addEventListener('click', () => {
 			open(openUrl);
 		});
-		getHref.style.cursor = "pointer";
-
-		// mouseover
-		playerMypage[i].addEventListener('mouseover', () => {
-			getHref.style.textDecoration = "underline";
-		});
-		playerMypage[i].addEventListener('mouseleave', () => {
-			getHref.style.textDecoration = "";
-		});
-		const playerImg = document.querySelectorAll(".thumbnailContainer > a > .imgWrap16x9")[i];
-		getHref.addEventListener('mouseover', () => {
-			playerImg.style.opacity = "0.6";
-		});
-		getHref.addEventListener('mouseleave', () => {
-			playerImg.style.opacity = "";
-		});
+	}
+	if (!document.getElementById("mouseover-style")) {
+		document.head.insertAdjacentHTML('beforeend', '<style id="mouseover-style"></style>');
+		document.head.lastElementChild.textContent = `
+			.textContainer:hover {
+				cursor: pointer;
+			}
+			.itemModuleIn:hover .textContainer {
+				text-decoration: underline;
+			}
+			.itemModuleIn:hover .thumbnailContainer > a > .imgWrap16x9 {
+				opacity : .6;
+			}`;
 	}
 	const getHref = document.querySelectorAll(".textContainer[href]");
 	for (let i = 0; i < getHref.length; i++) {
@@ -186,6 +183,8 @@ function showOrder() {
 			background: none;
 			top: -20px;
 			right: -10px;
+			opacity: 1 !important;
+			user-select: none;
 		}
 		.minict_wrapper > ul > li {
 			padding: 20px 30px;
@@ -204,6 +203,7 @@ function restCount() {
 // 解像度を表示選択
 let resolutionbool = GM_getValue("menu", true);
 let titlebool = GM_getValue("seekbarTitle", true);
+let hideDetailBool = GM_getValue("hideDetail", false);
 
 const path = window.location.pathname.replace('/animestore/', '');
 if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
@@ -273,45 +273,53 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		// サムネイルをクリックすると新規タブで開く
 		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + document.querySelector(".thumbnailContainer > a").getAttribute("data-partid");
 		if (!addOpen) {
+			document.querySelector(".pageHeader > .pageHeaderIn.clearfix").addEventListener('click', () => {
+				open(openUrl);
+			});
+			// 画像をホバーしても、上のでは動かないので
 			playerImg.addEventListener('click', () => {
 				open(openUrl);
 			});
 			addOpen = true;
 		}
 
-		// 「続きから視聴する」を削除
-		const btnResume = document.querySelector(".btnResume");
-		btnResume ? btnResume.remove() : "";
-		// タイトルの横幅を増やす
-		document.querySelector(".pageHeader .title").style.width = "944px";
-		// mouseover
-		const headerLink = document.querySelector(".pageHeaderIn > .information");
-		const playerToppage = document.querySelector(".thumbnailContainer > a");
-		const titleLine = document.querySelector(".information > .title");
-		const subtitleLine = document.querySelector(".information > .subTitle > p");
-		headerLink.style.cursor = "pointer";
-		headerLink.addEventListener('mouseover', () => {
-			titleLine.style.textDecoration = "underline";
-			subtitleLine.style.textDecoration = "underline";
-			playerImg.style.opacity = "0.6";
-		});
-		headerLink.addEventListener('mouseleave', () => {
-			titleLine.style.textDecoration = "";
-			subtitleLine.style.textDecoration = "";
-			playerImg.style.opacity = "";
-		});
-		playerToppage.addEventListener('mouseover', () => {
-			titleLine.style.textDecoration = "underline";
-			subtitleLine.style.textDecoration = "underline";
-		});
-		playerToppage.addEventListener('mouseleave', () => {
-			titleLine.style.textDecoration = "";
-			subtitleLine.style.textDecoration = "";
-		});
-		// タイトルをクリックすると新規タブで開く
-		headerLink.addEventListener('click', () => {
-			open(openUrl);
-		});
+		// タイトルwidth、ホバー
+		if (!document.getElementById("mouseover-style")) {
+			document.head.insertAdjacentHTML('beforeend', '<style id="mouseover-style"></style>');
+			document.head.lastElementChild.textContent = `
+				.pageHeader .btnResume {
+					display: none;
+				}
+				.pageHeader .title {
+					width: 100% !important;
+				}
+				.pageHeader .directPlayReady {
+					background-color: white;
+				}
+				@media screen and (min-width: 960px) {
+					.pageHeader .subTitle {
+						margin: 5px 0 0 5px !important;
+						width: 100% !important;
+					}
+				}
+				.pageHeader .subTitle > p {
+					width: 100%;
+					transform: none !important;
+					transition: none !important;
+					overflow: hidden;
+					text-overflow: ellipsis;
+				}
+
+				.pageHeader > .pageHeaderIn.clearfix:hover {
+					cursor: pointer;
+				}
+				.pageHeader > .pageHeaderIn.clearfix:hover :is(.title, .subTitle > p) {
+					text-decoration: underline;
+				}
+				.pageHeader > .pageHeaderIn.clearfix:hover .imgWrap16x9 {
+					opacity : .6;
+				}`;
+		}
 
 		if (resolutionbool) {
 			addResolutionStyle();
@@ -354,9 +362,41 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	const config = { childList: true, subtree: true };
 	observer.observe(document.body, config);
 	setTimeout(function () { observer.disconnect(); }, 2000);
+
 } else if (path == "ci_pc") {
 	// 作品ページ
 	const playerImges = document.querySelectorAll("section.clearfix > a");
+
+	// 詳しく見るを表示
+	if (hideDetailBool) {
+		for (const playerImg of playerImges) {
+			const url = location.href + "&amp;" + playerImg.getAttribute("href").slice(6);
+			const div = `
+				<div class="detail">
+					<a href="${url}">詳しく見る
+						<i class="icon iconArrowOrangeRightS"></i>
+					</a>
+				</div>`;
+			playerImg.insertAdjacentHTML("afterend", div);
+		}
+
+		// 詳しく見るから視聴時に、別タブを開く
+		const observer = new MutationObserver(() => {
+			const streamingQuality = document.getElementById("streamingQuality");
+			if (streamingQuality != undefined &&
+				document.getElementById("openVideo") == undefined
+			) {
+				streamingQuality.remove();
+				const partId = new URL(location.href).searchParams.get('partId');
+				const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + partId;
+				const div = `<div class="list"><a id="openVideo" class="normal" href="${openUrl}" target="_blank" rel="noopener noreferrer" style="cursor: pointer;">視聴する</a></div>`;
+				document.querySelector("modal .playerContainer > div").insertAdjacentHTML('afterbegin', div);
+			}
+		});
+		const config = { childList: true, subtree: true };
+		observer.observe(document.body, config);
+	}
+
 	for (const playerImg of playerImges) {
 		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc" + playerImg.getAttribute("href").slice(5);
 		// 詳しく見るを開かずに、タブで動画を開く
@@ -366,6 +406,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		playerImg.style.cursor = "pointer";
 		playerImg.removeAttribute("href");
 	}
+
 } else if (path == "sc_d_pc") {
 	// 再生画面
 	const video = document.querySelector("video");
@@ -436,6 +477,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			document.querySelector("#volumeText > span").textContent = Math.round(video.volume * 100);
 		}
 	})
+
 } else if (path == "sch_pc" || path == "gen_pc" || path == "c_all_pc" || path == "series_pc" || path == "tag_pc") {
 	// 検索結果、シリーズ、ランキング
 
@@ -450,6 +492,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		const config = { childList: true };
 		observer2.observe(document.querySelector("#listContainer"), config);
 	}
+
 } else if (path == "mpa_cmp_pc") {
 	// コンプリート
 	// 解像度表示
@@ -494,11 +537,43 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	}
 }
 
-// 詳しく見るを削除
-const detail = document.querySelectorAll('.itemModule > section > .detail');
-for (let i = 0; i < detail.length; i++) {
-	detail[i].style.display = "none";
+
+// 詳しく見るを非表示
+if (!hideDetailBool) {
+	document.head.insertAdjacentHTML('beforeend', '<style id="hide-detail"></style>');
+	document.head.lastElementChild.textContent = `
+		.itemModule > section > .detail {
+			display: none;
+		}`;
+} else {
+	document.head.insertAdjacentHTML('beforeend', '<style id="add-detail"></style>');
+	document.head.lastElementChild.textContent = `
+		@media screen and (min-width: 960px) {
+			.detail {
+			  bottom: 4px !important;
+			  right: 10px !important;
+			}
+			.detail .icon {
+				vertical-align: -3px;
+				margin-left: 0 !important;
+			}
+		}
+		.detail {
+			position: absolute;
+			right: 6px;
+			bottom: 0;
+			width: auto;
+			font-weight: bold;
+		}
+		.detail > a {
+			display: block !important;
+			overflow: hidden;
+			padding: 0 !important;
+		}`;
 }
+
+
+
 
 
 // 解像度を表示設定
@@ -521,5 +596,14 @@ GM_registerMenuCommand(titleText, () => {
 	} else {
 		const showTitle = true;
 		GM_setValue("seekbarTitle", showTitle);
+	}
+});
+// 詳しく見るを非表示
+let hideDetailText = hideDetailBool ? "詳しく見るを表示：ON✔️" : "詳しく見るを表示：OFF❌";
+GM_registerMenuCommand(hideDetailText, () => {
+	if (hideDetailBool) {
+		GM_setValue("hideDetail", false);
+	} else {
+		GM_setValue("hideDetail", true);
 	}
 });
