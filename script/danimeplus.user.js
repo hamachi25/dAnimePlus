@@ -5,7 +5,7 @@
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_registerMenuCommand
-// @version     1.7
+// @version     1.8
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -247,6 +247,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	// 「現在放送中のアニメ」リンク先変更
 	let eventStop = false;
 	let addOpen = false;
+	let reverse = true;
 	const observer = new MutationObserver(() => {
 		// リンク先変更
 		const itemLists = document.querySelectorAll(".itemWrapper > .p-slider__item > a.c-slide");
@@ -264,6 +265,9 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			playerImg.addEventListener("click", e => {
 				e.stopPropagation();
 			})
+			document.querySelector(".thumbnailContainer > a > .progress").addEventListener("click", e => {
+				e.stopPropagation();
+			})
 			eventStop = true;
 		}
 		// アイコンのeventが削除できないので、imgWrap16x9の子に移動する
@@ -273,7 +277,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		// サムネイルをクリックすると新規タブで開く
 		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + document.querySelector(".thumbnailContainer > a").getAttribute("data-partid");
 		if (!addOpen) {
-			document.querySelector(".pageHeader > .pageHeaderIn.clearfix").addEventListener('click', () => {
+			document.querySelector(".pageHeader").addEventListener('click', () => {
 				open(openUrl);
 			});
 			// 画像をホバーしても、上のでは動かないので
@@ -281,6 +285,15 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 				open(openUrl);
 			});
 			addOpen = true;
+		}
+
+		// 画像とタイトルを入れ替え
+		const parent = document.querySelector(".pageHeader > .pageHeaderIn");
+		const information = document.querySelector(".pageHeader .information");
+		const thumbnailContainer = document.querySelector(".pageHeader .thumbnailContainer");
+		if (parent && information && thumbnailContainer && reverse) {
+			parent.insertBefore(thumbnailContainer, information);
+			reverse = false;
 		}
 
 		// タイトルwidth、ホバー
@@ -301,6 +314,19 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 						margin: 5px 0 0 5px !important;
 						width: 100% !important;
 					}
+					.pageHeader .information,
+					.pageHeader .thumbnailContainer {
+						float: none !important;
+					}
+					.pageHeader .pageHeaderIn {
+						display: flex !important;
+						width: fit-content !important;
+					}
+					.pageHeader .information {
+						max-width: 693px;
+						width: fit-content !important;
+						margin-left: 15px;
+					}
 				}
 				.pageHeader .subTitle > p {
 					width: 100%;
@@ -310,13 +336,13 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 					text-overflow: ellipsis;
 				}
 
-				.pageHeader > .pageHeaderIn.clearfix:hover {
+				.pageHeader:hover {
 					cursor: pointer;
 				}
-				.pageHeader > .pageHeaderIn.clearfix:hover :is(.title, .subTitle > p) {
+				.pageHeader:hover :is(.title, .subTitle > p) {
 					text-decoration: underline;
 				}
-				.pageHeader > .pageHeaderIn.clearfix:hover .imgWrap16x9 {
+				.pageHeader:hover .imgWrap16x9 {
 					opacity : .6;
 				}`;
 		}
