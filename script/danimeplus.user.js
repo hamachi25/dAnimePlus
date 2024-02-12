@@ -130,6 +130,22 @@ function qualityAndYear(torf) {
 
 
 // サムネイルとテキストをクリックすると新規タブで開く + mouseover -------------------------------
+function addHoverStyle() {
+	if (!document.getElementById("mouseover-style")) {
+		document.head.insertAdjacentHTML('beforeend', '<style id="mouseover-style"></style>');
+		document.head.lastElementChild.textContent = `
+			.textContainer:hover {
+				cursor: pointer;
+			}
+			.itemModuleIn:hover .textContainer {
+				text-decoration: underline;
+			}
+			.itemModuleIn:hover .thumbnailContainer > a > .imgWrap16x9 {
+				opacity : .6;
+			}`;
+	}
+}
+
 function thumbnailclick() {
 	const playerMypage = document.querySelectorAll(".thumbnailContainer > a");
 	if (playerMypage.length == 0) { return }
@@ -148,26 +164,15 @@ function thumbnailclick() {
 			open(openUrl);
 		});
 	}
-	if (!document.getElementById("mouseover-style")) {
-		document.head.insertAdjacentHTML('beforeend', '<style id="mouseover-style"></style>');
-		document.head.lastElementChild.textContent = `
-			.textContainer:hover {
-				cursor: pointer;
-			}
-			.itemModuleIn:hover .textContainer {
-				text-decoration: underline;
-			}
-			.itemModuleIn:hover .thumbnailContainer > a > .imgWrap16x9 {
-				opacity : .6;
-			}`;
-	}
 	const getHref = document.querySelectorAll(".textContainer[href]");
 	for (let i = 0; i < getHref.length; i++) {
 		getHref[i].removeAttribute("href");
 	}
+	addHoverStyle();
 }
 // -----------------------------------------------------------------------------------------
 
+// 検索結果で常に順番の選択肢を表示
 function showOrder() {
 	document.head.insertAdjacentHTML('beforeend', '<style id="show-order"></style>');
 	document.head.lastElementChild.textContent = `
@@ -243,11 +248,11 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 	thumbnailclick();
 
 } else if (path == "tp_pc") {
+
 	// トップページ
 	// 「現在放送中のアニメ」リンク先変更
 	let eventStop = false;
 	let addOpen = false;
-	let reverse = true;
 	const observer = new MutationObserver(() => {
 		// リンク先変更
 		const itemLists = document.querySelectorAll(".itemWrapper > .p-slider__item > a.c-slide");
@@ -259,9 +264,8 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 		}
 
 		// 新規ウィンドウで開くeventを無効化
-		if (document.querySelector(".thumbnailContainer > a > .imgWrap16x9") == undefined) { return }
 		const playerImg = document.querySelectorAll(".thumbnailContainer > a > .imgWrap16x9")[0];
-		if (!eventStop) {
+		if (!eventStop && playerImg) {
 			playerImg.addEventListener("click", e => {
 				e.stopPropagation();
 			})
@@ -269,46 +273,28 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 				e.stopPropagation();
 			})
 			eventStop = true;
-		}
-		// アイコンのeventが削除できないので、imgWrap16x9の子に移動する
-		const iconPlay = document.querySelector(".thumbnailContainer > a > i");
-		iconPlay ? playerImg.appendChild(iconPlay) : "";
+			// アイコンのeventが削除できないので、imgWrap16x9の子に移動する
+			const iconPlay = document.querySelector(".thumbnailContainer > a > i");
+			iconPlay ? playerImg.appendChild(iconPlay) : "";
 
-		// サムネイルをクリックすると新規タブで開く
-		const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + document.querySelector(".thumbnailContainer > a").getAttribute("data-partid");
-		if (!addOpen) {
-			document.querySelector(".pageHeader").addEventListener('click', () => {
-				open(openUrl);
-			});
-			// 画像をホバーしても、上のでは動かないので
-			playerImg.addEventListener('click', () => {
-				open(openUrl);
-			});
-			addOpen = true;
-		}
-
-		// 画像とタイトルを入れ替え
-		const parent = document.querySelector(".pageHeader > .pageHeaderIn");
-		const information = document.querySelector(".pageHeader .information");
-		const thumbnailContainer = document.querySelector(".pageHeader .thumbnailContainer");
-		if (parent && information && thumbnailContainer && reverse) {
-			parent.insertBefore(thumbnailContainer, information);
-			reverse = false;
+			// サムネイルをクリックすると新規タブで開く
+			const openUrl = "https://animestore.docomo.ne.jp/animestore/sc_d_pc?partId=" + document.querySelector(".thumbnailContainer > a").getAttribute("data-partid");
+			if (!addOpen) {
+				document.querySelector(".pageHeader").addEventListener('click', () => {
+					open(openUrl);
+				});
+				// 画像をホバーしても、上のでは動かないので
+				playerImg.addEventListener('click', () => {
+					open(openUrl);
+				});
+				addOpen = true;
+			}
 		}
 
 		// タイトルwidth、ホバー
 		if (!document.getElementById("mouseover-style")) {
 			document.head.insertAdjacentHTML('beforeend', '<style id="mouseover-style"></style>');
 			document.head.lastElementChild.textContent = `
-				.pageHeader .btnResume {
-					display: none;
-				}
-				.pageHeader .title {
-					width: 100% !important;
-				}
-				.pageHeader .directPlayReady {
-					background-color: white;
-				}
 				@media screen and (min-width: 960px) {
 					.pageHeader .subTitle {
 						margin: 5px 0 0 5px !important;
@@ -328,6 +314,19 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 						margin-left: 15px;
 					}
 				}
+				.pageHeader .btnResume {
+					display: none;
+				}
+				.pageHeader .thumbnailContainer {
+					order: 0;
+					margin-left: 0 !important;
+				}
+				.pageHeader .information {
+					order: 1;
+				}
+				.pageHeader .title {
+					width: 100% !important;
+				}
 				.pageHeader .subTitle > p {
 					width: 100%;
 					transform: none !important;
@@ -335,7 +334,6 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 					overflow: hidden;
 					text-overflow: ellipsis;
 				}
-
 				.pageHeader:hover {
 					cursor: pointer;
 				}
@@ -352,10 +350,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 			const playerSlider = document.querySelectorAll('.p-slider__item:not(.add-resolution,.isBlack,[data-link^="/animestore/series?seriesId="]) > div > input[data-workid]');
 			if (playerSlider.length == 0) { return }
 			const insertTarget = document.querySelectorAll(`.p-slider__item:not(.add-resolution,.isBlack,[data-link^="/animestore/series?seriesId="]) > a.c-slide > .isAnime:not(.isOnAir)`);
-			const addClassTarget = Array.from(document.querySelectorAll('.p-slider__item:not(.add-resolution,.isBlack,[data-link^="/animestore/series?seriesId="])'))
-				.filter(slider => slider.querySelector("input[data-workid]"));
-			// Firefoxがhas対応したら切り替える
-			// const addClassTarget = document.querySelectorAll('.p-slider__item:not(.add-resolution,.isBlack,[data-link^="/animestore/series?seriesId="]):has(> div > input[data-workid])');
+			const addClassTarget = document.querySelectorAll('.p-slider__item:not(.add-resolution,.isBlack,[data-link^="/animestore/series?seriesId="]):has(> div > input[data-workid])');
 
 			let workIds = [];
 			for (let i = 0; i < playerSlider.length; i++) {
@@ -373,11 +368,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 				for (let i = 0; i < sorted.length; i++) {
 					const quality = sorted[i];
 					function div(quality) {
-						const headerquality = `
-							<div class="quality">
-								<span>${quality}</span>
-							</div>`;
-						insertTarget[i].insertAdjacentHTML('afterend', headerquality);
+						insertTarget[i].insertAdjacentHTML('afterend', `<div class="quality"><span>${quality}</span></div>`);
 					}
 					resolutionBranch(div, quality);
 				}
@@ -509,6 +500,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
 
 	showOrder();
 	restCount();
+	addHoverStyle();
 
 	// 解像度表示
 	if (resolutionbool) {
@@ -572,6 +564,7 @@ if (!hideDetailBool) {
 			display: none;
 		}`;
 } else {
+	// 表示する場合は、作品ページにも追加
 	document.head.insertAdjacentHTML('beforeend', '<style id="add-detail"></style>');
 	document.head.lastElementChild.textContent = `
 		@media screen and (min-width: 960px) {
