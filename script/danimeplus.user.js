@@ -5,7 +5,7 @@
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @grant       GM_registerMenuCommand
-// @version     1.9.2
+// @version     1.9.3
 // @author      chimaha
 // @description dアニメストアに様々な機能を追加します
 // @license     MIT license
@@ -488,7 +488,7 @@ if (path == "mpa_fav_pc" || path == "mpa_hst_pc") {
                 </span>    
             </div>
         `;
-    } else {
+    } else if (titlebool) {
       document.querySelector("#title>span").textContent = `${animeTitle} ${episode}`;
     }
 
