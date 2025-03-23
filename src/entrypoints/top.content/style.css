@@ -1,0 +1,32 @@
+.pageHeader > .pageHeaderIn {
+	cursor: pointer;
+
+	@media screen and (min-width: 960px) {
+		display: flex !important;
+		flex-direction: row-reverse;
+		gap: 1rem;
+		width: fit-content !important;
+		padding-right: 3rem;
+
+		> .information {
+			width: fit-content !important;
+		}
+		.title.line1,
+		.subTitle.marquee {
+			width: fit-content !important;
+		}
+	}
+
+	&:hover {
+		span,
+		p.animate {
+			text-decoration: underline;
+		}
+		.imgWrap16x9 {
+			opacity: 0.6;
+		}
+	}
+}
+.pageHeaderIn .btnResume.onlyPcLayout {
+	display: none;
+}
