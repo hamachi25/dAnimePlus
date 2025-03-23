@@ -1,0 +1,55 @@
+{
+	"name": "danime-plus",
+	"private": true,
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "wxt",
+		"dev:firefox": "wxt -b firefox",
+		"build": "wxt build",
+		"build:firefox": "wxt build -b firefox",
+		"zip": "wxt zip",
+		"zip:firefox": "wxt zip -b firefox",
+		"compile": "tsc --noEmit",
+		"postinstall": "wxt prepare",
+		"prepare": "husky",
+		"lint": "eslint src/**/*.{js,ts,tsx}"
+	},
+	"dependencies": {
+		"@tailwindcss/vite": "^4.0.15",
+		"@wxt-dev/storage": "^1.1.1",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"tailwindcss": "^4.0.15"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.23.0",
+		"@types/chrome": "^0.0.280",
+		"@types/react": "^19.0.12",
+		"@types/react-dom": "^19.0.4",
+		"@wxt-dev/auto-icons": "^1.0.2",
+		"@wxt-dev/module-react": "^1.1.3",
+		"eslint": "^9.23.0",
+		"eslint-config-prettier": "^10.1.1",
+		"eslint-plugin-react": "^7.37.4",
+		"globals": "^16.0.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^15.5.0",
+		"prettier": "3.5.3",
+		"prettier-plugin-tailwindcss": "^0.6.11",
+		"react-icons": "^5.5.0",
+		"typescript": "^5.8.2",
+		"typescript-eslint": "^8.27.0",
+		"wxt": "^0.19.29"
+	},
+	"lint-staged": {
+		"*.{js,ts,tsx}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{cjs,md}": [
+			"prettier --write"
+		]
+	},
+	"packageManager": "pnpm@10.4.1+sha512.c753b6c3ad7afa13af388fa6d808035a008e30ea9993f58c6663e2bc5ff21679aa834db094987129aa4d488b86df57f7b634981b2f827cdcacc698cc0cfb88af"
+}

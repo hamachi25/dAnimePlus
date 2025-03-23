@@ -1,0 +1,24 @@
+@media screen and (min-width: 960px) {
+	.minict_wrapper {
+		> span {
+			display: none !important;
+		}
+		> ul {
+			display: flex !important;
+			border: none !important;
+			border-top: none;
+			box-shadow: none !important;
+			width: max-content !important;
+			background: none !important;
+			top: -20px !important;
+			right: -10px !important;
+			opacity: 1 !important;
+			user-select: none;
+
+			> li {
+				padding: 20px 30px !important;
+				border-bottom: none !important;
+			}
+		}
+	}
+}

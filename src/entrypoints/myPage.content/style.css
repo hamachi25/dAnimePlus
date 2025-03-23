@@ -1,0 +1,25 @@
+.itemModuleIn {
+	&:hover {
+		.textContainer {
+			text-decoration: underline;
+			color: #666;
+		}
+		.thumbnailContainer > a > .imgWrap16x9 {
+			opacity: 0.6;
+		}
+	}
+
+	> .thumbnailContainer {
+		padding-top: 4px;
+	}
+
+	.textContainer:hover {
+		cursor: pointer;
+	}
+
+	@media screen and (min-width: 960px) {
+		> .thumbnailContainer {
+			padding-top: 3px;
+		}
+	}
+}
