@@ -13,7 +13,7 @@ const App = () => {
 		(async () => {
 			const volume = await volumeSetting.getValue(); // ローカルストレージから音量を取得
 			const videoElement = document.querySelector("video");
-			if (videoElement && volume) {
+			if (videoElement && volume !== null) {
 				videoElement.volume = volume;
 			}
 
